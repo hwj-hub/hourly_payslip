@@ -1,0 +1,2695 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>시급 임금명세서 작성기 · 알바 급여명세서 만들기, 주휴수당·가산수당·공제 자동 (2026·2027)</title>
+<meta name="description" content="시급과 요일별 출퇴근 시간만 넣으면 달력대로 근무시간을 세어 기본급·주휴수당·연장·야간·휴일수당·공휴일 유급휴일수당을 계산하고, 근로기준법이 요구하는 계산방법까지 적힌 임금명세서를 PDF·이미지로 만들어 줍니다. 4대보험·간이세액 소득세, 3.3%, 일용직 공제 선택. 2026년 최저시급 10,320원·2027년 10,700원 점검. 설치·회원가입 없이, 급여 정보는 서버로 보내지 않습니다.">
+<meta property="og:title" content="시급 임금명세서 작성기 · 알바 급여명세서 만들기">
+<meta property="og:description" content="시급과 출퇴근 시간만 넣으면 주휴수당·가산수당·공제까지 계산된 임금명세서 완성. 계산방법 자동 기재, PDF·이미지 저장, 카톡으로 보내기. 설치·업로드 없이.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hwj-hub.github.io/hourly_payslip/">
+<meta property="og:image" content="https://hwj-hub.github.io/hourly_payslip/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="시급 임금명세서 작성기 — 시급과 근무 달력으로 주휴수당·가산수당·공제를 계산해 임금명세서를 만들어 주는 무료 도구">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%F0%9F%A7%BE%3C/text%3E%3C/svg%3E">
+<style id="pageStyle"></style>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  color-scheme:light dark;
+  --bg:#f2f7f6; --card:#fff; --card2:#edf5f3; --fg:#0f1f1c; --muted:#557069; --line:#d3e4e0;
+  --accent:#0f766e; --accent2:#0d9488; --afg:#fff;
+  --ok:#047857; --okbg:#e3f5ee; --warn:#b45309; --warnbg:#fef4e6; --danger:#dc2626; --dangerbg:#fdecec;
+  --hol:#dc2626; --sat:#2563eb;
+  --shadow:0 1px 2px rgba(15,31,28,.05),0 8px 24px -14px rgba(15,31,28,.30);
+  --r:16px;
+}
+@media (prefers-color-scheme:dark){
+ :root{
+  --bg:#0b1513; --card:#12201d; --card2:#0f1a18; --fg:#e8f4f1; --muted:#9bb8b1; --line:#243c37;
+  --accent:#5eead4; --accent2:#99f6e4; --afg:#04201c;
+  --ok:#34d399; --okbg:#0c2b23; --warn:#fbbf24; --warnbg:#2a2110; --danger:#f87171; --dangerbg:#2c1414;
+  --hol:#f87171; --sat:#93c5fd;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -16px rgba(0,0,0,.8);
+ }
+}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);line-height:1.55;word-break:keep-all;overflow-wrap:anywhere;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",Roboto,sans-serif;
+  -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:1180px;margin:0 auto;padding:0 14px calc(70px + env(safe-area-inset-bottom))}
+.hide{display:none !important}
+.nw{white-space:nowrap}
+
+/* ══ 광고 슬롯 ══ 자리만 비워 두고 화면 폭에 맞는 크기를 AD 가 채운다.
+   크기를 미리 잡아 두어 광고가 늦게 떠도 화면이 밀리지 않는다(애드핏: 광고 공간은 고정되어야 함) */
+.ad-slot{display:flex;align-items:center;justify-content:center;margin:10px auto;max-width:100%}
+.ad-top{width:320px;height:50px;max-width:100%}
+.ad-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;border:1px dashed var(--line);
+  border-radius:8px;background:var(--card2);color:var(--muted);font-size:11px;letter-spacing:.08em;font-weight:600}
+/* ── 인앱 브라우저 안내 띠 ── 앱 안 WebView 는 파일을 내려받지 못한다 */
+.iabar{display:none;align-items:center;gap:10px;margin:10px 0 0;padding:11px 12px;border-radius:12px;
+  background:var(--warnbg);border:1px solid color-mix(in srgb,var(--warn) 34%,transparent);line-height:1.5}
+body.inapp .iabar{display:flex}
+.iabar .ia-t{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:700;color:var(--fg)}
+.iabar .ia-t small{display:block;font-size:11.5px;font-weight:600;color:var(--muted);margin-top:2px}
+.iabar .ia-go{flex:0 0 auto;font:inherit;font-size:12.5px;font-weight:800;color:#fff;border:0;border-radius:999px;
+  padding:9px 14px;min-height:38px;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+@media (prefers-color-scheme:dark){.iabar .ia-go{color:var(--afg)}}
+.iabar .ia-x{flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:transparent;
+  color:var(--muted);font:inherit;font-size:12px;line-height:1;cursor:pointer}
+/* ── 앱 안에서 열었을 때 막는 창 ── 토스트(z-index 99)보다는 아래에 둔다 */
+.iamodal{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:18px;
+  background:rgba(4,20,17,.72);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+body.ia-lock{overflow:hidden}
+body.ia-lock .iamodal{display:flex}
+body.ia-lock .wrap{pointer-events:none}
+.iasheet{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
+  width:100%;max-width:420px;max-height:92vh;overflow:auto;padding:22px 18px 16px;text-align:center}
+.iasheet .iaic{font-size:34px;line-height:1;margin-bottom:10px}
+.iasheet h2{font-size:17.5px;font-weight:800;letter-spacing:-.02em;margin:0 0 10px;line-height:1.45;text-wrap:balance}
+.iap{font-size:13.5px;font-weight:600;color:var(--muted);line-height:1.7;margin:0 0 14px}
+.iap b{color:var(--fg);font-weight:800}
+.iasteps{text-align:left;margin:0 0 16px;padding:12px 14px 12px 32px;border-radius:12px;background:var(--card2);
+  font-size:13px;font-weight:600;color:var(--muted);line-height:1.7}
+.iasteps li+li{margin-top:5px}
+.iasteps b{color:var(--fg);font-weight:800}
+.iabtn{display:block;width:100%;font:inherit;font-size:15px;font-weight:800;color:#fff;border:0;border-radius:12px;
+  padding:14px;min-height:52px;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  box-shadow:var(--shadow)}
+@media (prefers-color-scheme:dark){.iabtn{color:var(--afg)}}
+.iafine{margin:12px 0 0;font-size:12px;font-weight:600;color:var(--muted);line-height:1.6}
+.iafine button{font:inherit;font-size:12px;font-weight:700;color:var(--muted);background:none;border:0;padding:6px 8px;
+  text-decoration:underline;cursor:pointer;min-height:36px}
+.dwarn{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:var(--warnbg);font-size:12.5px;font-weight:700;line-height:1.6}
+.dwarn button{font:inherit;font-size:12.5px;font-weight:800;color:var(--accent);background:none;border:0;padding:9px 2px;margin:-9px 0;
+  text-decoration:underline;cursor:pointer}
+.ad-lab{display:block;text-align:center;font-size:9.5px;font-weight:700;letter-spacing:.14em;color:var(--muted);opacity:.7;margin:12px 0 -4px}
+body.no-ad .ad-slot,.ad-none{display:none !important}
+/* PC 옆 칸 — 미리보기 카드 바로 위 320×50 (좁은 화면에서는 숨긴다) */
+@media (max-width:979px){#ad-side{display:none}}
+@media (min-width:980px){#ad-side{margin:14px auto 0}}
+/* 본문 광고는 버튼·입력칸에서 넉넉히 떼어 놓는다 — 실수로 눌리는 자리는 금지 */
+#ad-mid{margin:18px auto}
+
+/* ── 하단 오버형 ── 콘텐츠를 가리지 않도록 본문 아래 여백을 같이 늘린다(애드핏: 콘텐츠를 덮는 배치 금지).
+   입력 중·미리보기를 보는 중에는 띄우지 않는다 — 핵심 행동 중 광고 노출 금지 조항 */
+#anchor{position:fixed;left:0;right:0;bottom:0;z-index:45;display:flex;align-items:center;justify-content:center;
+  background:var(--card);border-top:1px solid var(--line);box-shadow:0 -8px 22px -14px rgba(0,0,0,.55);
+  padding:8px 4px calc(8px + env(safe-area-inset-bottom));transform:translateY(120%);
+  /* 바 위쪽에 붙은 「광고」 라벨·닫기는 translateY 로 내려도 화면에 걸쳐 남는다 — 통째로 감춘다 */
+  visibility:hidden;pointer-events:none;transition:transform .22s,visibility 0s linear .22s}
+#anchor.on{transform:none;visibility:visible;pointer-events:auto;transition:transform .22s,visibility 0s}
+#anchor .ad-slot{margin:0}
+#anchor .amk{position:absolute;left:10px;top:-11px;font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--muted);
+  background:var(--card);border:1px solid var(--line);border-radius:5px;padding:0 5px;line-height:15px}
+/* 닫기는 광고 영역 밖에 둔다 — 광고 안에 닫기 버튼을 넣는 것은 금지(오클릭 방지) */
+#anchor .axl{position:absolute;right:6px;top:-38px;width:36px;height:36px;border-radius:50%;cursor:pointer;
+  border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:13px;line-height:1;box-shadow:var(--shadow)}
+#anchor .axl::before{content:'';position:absolute;inset:-6px}
+body.anch .wrap{padding-bottom:calc(124px + env(safe-area-inset-bottom))}
+body.anch #toast{bottom:calc(118px + env(safe-area-inset-bottom))}
+@media (min-width:980px){#anchor{display:none}}
+
+/* ── 저장 완료 카드 ── 화면을 덮지 않고 본문 흐름 안에 펼친다 */
+#doneCard{border-color:color-mix(in srgb,var(--ok) 40%,var(--line))}
+#doneCard .ad-lab{margin-top:16px}
+.dmsg{margin:0 0 10px;font-size:14px;font-weight:700;line-height:1.6}
+.dsteps{margin:0;padding:0 0 0 20px;font-size:13px;font-weight:600;line-height:1.75;color:var(--muted)}
+.dsteps b{color:var(--fg);font-weight:800}
+
+header{text-align:center;padding:14px 0 2px}
+.logo{display:inline-flex;align-items:center;gap:9px;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.logo .ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:17px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:var(--shadow)}
+.tag{font-size:14.5px;font-weight:600;color:var(--muted);margin:8px 0 0;text-wrap:balance}
+.tag b{color:var(--fg)}
+.badges{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}
+.badge{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--okbg);color:var(--ok);border:1px solid transparent}
+.badge.gray{background:var(--card2);color:var(--muted);border-color:var(--line)}
+
+/* ── 두 칸 배치 · 넓은 화면에서 명세서 미리보기를 옆에 붙인다 ── */
+.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:0 16px}
+@media (min-width:980px){
+  .layout{grid-template-columns:minmax(0,1fr) 440px;align-items:start}
+  /* 옆 칸이 화면보다 길면 스스로 스크롤한다 — sticky 만 두면 완료 카드가 화면 밖에 남는다 */
+  .side{position:sticky;top:8px;max-height:calc(100vh - 16px);overflow:auto;overscroll-behavior:contain;
+    scrollbar-width:thin;padding:0 2px 12px}
+}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;margin-top:14px}
+.card h2{font-size:12px;font-weight:800;color:var(--muted);margin:0 0 12px;letter-spacing:.07em;
+  display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card h2 .n{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;margin-right:6px;
+  background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);letter-spacing:0;font-size:11.5px}
+.h2r{font-size:11.5px;font-weight:700;color:var(--accent);letter-spacing:0;text-align:right;min-width:0}
+
+.row{margin-top:16px}
+.row:first-child{margin-top:0}
+.lab{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:13.5px;font-weight:800;margin-bottom:8px}
+.lab .hint{font-weight:500;color:var(--muted);font-size:12px;text-align:right}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1 1 84px;border:1px solid var(--line);background:var(--card2);color:var(--fg);font:inherit;font-size:13px;
+  font-weight:700;padding:9px 6px;border-radius:11px;cursor:pointer;min-height:48px;transition:.15s;line-height:1.3}
+.seg button i{display:block;font-style:normal;font-size:11px;font-weight:600;color:var(--muted);margin-top:2px}
+.seg button:hover{border-color:var(--accent)}
+.seg button.on{border-color:transparent;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:var(--shadow)}
+.seg button.on i{color:rgba(255,255,255,.85)}
+@media (prefers-color-scheme:dark){.seg button.on{color:var(--afg)}.seg button.on i{color:rgba(4,32,28,.75)}}
+.seg.sm button{min-height:42px;font-size:12.5px;padding:7px 6px}
+@media (max-width:560px){#segDed button{flex:1 1 calc(50% - 6px)}}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;font-size:12.5px;font-weight:700;
+  padding:7px 11px;border-radius:999px;cursor:pointer;min-height:40px;line-height:1.25}
+.chip i{font-style:normal;font-weight:600;color:var(--muted);font-size:11.5px}
+.chip:hover{border-color:var(--accent)}
+.chip.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--card));color:var(--accent)}
+.chip .x{margin-left:4px;color:var(--muted);font-weight:800}
+
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.nf{position:relative;min-width:0;display:block}
+.nf span{position:absolute;left:11px;top:5px;font-size:10.5px;font-weight:800;color:var(--muted);pointer-events:none;letter-spacing:.02em;z-index:1}
+.nf input,.nf select{display:block;width:100%;font:inherit;font-size:16px;font-weight:700;color:var(--fg);background:var(--card2);
+  border:1px solid var(--line);border-radius:10px;padding:19px 10px 5px;min-height:50px}
+.nf select{font-size:15px;padding:19px 8px 5px}
+.nf input:focus,.nf select:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.nf input::placeholder{color:var(--muted);opacity:.55;font-weight:600}
+.nf.won input{padding-right:30px;text-align:right}
+.nf.won::after{content:'원';position:absolute;right:11px;bottom:9px;font-size:13px;font-weight:700;color:var(--muted)}
+.sel{display:block;width:100%;font:inherit;font-size:14px;font-weight:700;color:var(--fg);background:var(--card2);
+  border:1px solid var(--line);border-radius:11px;padding:10px 12px;min-height:46px}
+.sel:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+.sub-h{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.06em;margin:18px 0 0;padding-top:14px;border-top:1px solid var(--line)}
+.chk{display:flex;gap:9px;align-items:flex-start;padding:8px 0;cursor:pointer;font-size:13.5px;font-weight:700}
+.chk input{flex:0 0 auto;width:20px;height:20px;margin:1px 0 0;accent-color:var(--accent)}
+.chk i{display:block;font-style:normal;font-size:12px;font-weight:600;color:var(--muted);margin-top:2px;line-height:1.6}
+.tools{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+.mini{border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;font-size:13px;font-weight:700;
+  padding:9px 14px;border-radius:999px;cursor:pointer;min-height:42px;transition:.15s}
+.mini:hover{border-color:var(--accent)}
+.mini.danger:hover{border-color:var(--danger);color:var(--danger)}
+
+.note{border-radius:11px;padding:10px 12px;font-size:12.5px;font-weight:600;line-height:1.65;margin-top:11px}
+.note b{font-weight:800}
+.note.info{background:var(--card2);color:var(--muted);border:1px solid var(--line)}
+.note.warn{background:var(--warnbg);color:var(--warn)}
+.note.bad{background:var(--dangerbg);color:var(--danger)}
+.fine{font-size:12px;font-weight:600;color:var(--muted);line-height:1.65;margin:9px 0 0}
+.fine b{color:var(--fg)}
+
+/* ── 요일별 시간표 ── */
+.sched{display:flex;flex-direction:column;gap:7px}
+.srow{display:grid;grid-template-columns:50px minmax(0,1fr);gap:8px;align-items:center;padding:6px;border-radius:12px;border:1px solid var(--line);background:var(--card2)}
+.srow.off{background:transparent}
+.srow.off .offt{font-size:12.5px;font-weight:700;color:var(--muted)}
+.dtog{width:50px;min-height:50px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--muted);
+  font:inherit;font-size:15px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;padding:0}
+.dtog i{font-style:normal;font-size:9.5px;font-weight:700;margin-top:2px}
+.dtog.on{border-color:transparent;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+@media (prefers-color-scheme:dark){.dtog.on{color:var(--afg)}}
+.dtog.sun{color:var(--hol)} .dtog.sat{color:var(--sat)}
+.dtog.on.sun,.dtog.on.sat{color:#fff}
+@media (prefers-color-scheme:dark){.dtog.on.sun,.dtog.on.sat{color:var(--afg)}}
+.tm{display:flex;flex-wrap:wrap;align-items:center;gap:5px 6px;min-width:0}
+.tp{display:inline-flex;align-items:center;gap:2px}
+.tp select,.brk{font:inherit;font-size:15px;font-weight:700;color:var(--fg);background:var(--card);border:1px solid var(--line);
+  border-radius:9px;min-height:44px;padding:0 4px;text-align:center;text-align-last:center}
+.tp select{width:52px}
+.tp b{font-weight:800;color:var(--muted)}
+.tm .til{font-weight:800;color:var(--muted);padding:0 1px}
+.brk{width:auto;min-width:92px;font-size:13.5px;padding:0 6px}
+.sh{font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap}
+.sh.nx{color:var(--warn)}
+.ssum{margin-top:10px;font-size:13px;font-weight:700;line-height:1.7}
+.ssum b{color:var(--accent);font-weight:800}
+
+/* ── 근무 달력 ── */
+.calh,.calg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.calh div{text-align:center;font-size:11.5px;font-weight:800;color:var(--muted);padding:2px 0}
+.calh .sun{color:var(--hol)} .calh .sat{color:var(--sat)}
+.calg{margin-top:4px}
+.cc{position:relative;min-height:56px;border-radius:10px;border:1px solid var(--line);background:var(--card);cursor:pointer;
+  font:inherit;color:var(--fg);padding:4px 2px 3px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;min-width:0}
+.cc:hover{border-color:var(--accent)}
+.cc .dn{font-size:12.5px;font-weight:800;line-height:1.2}
+.cc .hr{font-size:11px;font-weight:800;line-height:1.25;color:var(--accent);white-space:nowrap}
+.cc .tg{font-size:9.5px;font-weight:700;line-height:1.2;color:var(--muted);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 1px}
+.cc.work{background:color-mix(in srgb,var(--accent) 11%,var(--card));border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.cc.abs{background:var(--dangerbg);border-color:color-mix(in srgb,var(--danger) 35%,var(--line))}
+.cc.abs .hr{color:var(--danger)}
+.cc.leave{background:var(--okbg)}
+.cc.leave .hr{color:var(--ok)}
+.cc.out{opacity:.45;border-style:dashed}
+.cc.hol .dn,.cc.sun .dn{color:var(--hol)}
+.cc.sat .dn{color:var(--sat)}
+.cc.hol .tg{color:var(--hol)}
+.cc.ed{box-shadow:0 0 0 2px var(--accent) inset}
+.cc.chg::after{content:'';position:absolute;right:4px;top:4px;width:6px;height:6px;border-radius:50%;background:var(--warn)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:9px;font-size:11.5px;font-weight:700;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;border:1px solid var(--line)}
+.dayed{margin-top:10px;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:14px;padding:12px;background:var(--card2)}
+.dayed .dt{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;font-weight:800;margin-bottom:10px}
+.dayed .dt small{font-size:12px;font-weight:700;color:var(--hol)}
+.dayed .tm{margin-top:10px}
+.weeks{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.wk{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:11px;border:1px solid var(--line);background:var(--card2);font-size:12.5px;font-weight:700;line-height:1.5}
+.wk .wt{flex:1 1 auto;min-width:0}
+.wk .wt b{font-weight:800}
+.wk .wt small{display:block;font-size:11.5px;font-weight:600;color:var(--muted)}
+.wk .wv{flex:0 0 auto;text-align:right;font-weight:800;color:var(--accent);white-space:nowrap}
+.wk .wv.no{color:var(--muted)}
+.wk .wb{flex:0 0 auto;font:inherit;font-size:11.5px;font-weight:800;border:1px solid var(--line);background:var(--card);color:var(--muted);
+  border-radius:999px;padding:6px 10px;min-height:36px;cursor:pointer}
+.wk.nx{opacity:.6}
+
+/* ── 추가 수당·공제 ── */
+.xrow{display:grid;grid-template-columns:minmax(0,1fr) 128px auto 40px;gap:6px;align-items:center;margin-top:7px}
+.xrow input[type=text],.xrow input.amt{font:inherit;font-size:15px;font-weight:700;color:var(--fg);background:var(--card2);border:1px solid var(--line);
+  border-radius:10px;padding:8px 10px;min-height:44px;width:100%;min-width:0}
+.xrow input.amt{text-align:right}
+.xrow label{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;cursor:pointer}
+.xrow label input{width:18px;height:18px;accent-color:var(--accent)}
+.xrow .del{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--muted);font:inherit;font-size:13px;cursor:pointer}
+.xrow.m{grid-template-columns:minmax(0,1fr) 128px 40px}
+@media (max-width:430px){.xrow{grid-template-columns:minmax(0,1fr) 110px 40px}.xrow label{grid-column:1 / -1;order:5;padding-left:2px}}
+.dtab{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+.dtab td{padding:7px 4px;border-top:1px solid var(--line);vertical-align:middle}
+.dtab td:first-child{font-weight:800}
+.dtab td small{display:block;font-size:11px;font-weight:600;color:var(--muted);line-height:1.45}
+.dtab td.v{width:124px;text-align:right}
+.dtab input{width:118px;font:inherit;font-size:14.5px;font-weight:800;text-align:right;color:var(--fg);background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:6px 8px;min-height:40px}
+.dtab input.man{border-color:var(--warn);background:var(--warnbg)}
+.dtab tr.tot td{font-weight:800;border-top:2px solid var(--line)}
+.dtab tr.tot td.v{padding-right:10px;color:var(--accent)}
+
+/* ── 명세서 미리보기 ── */
+.net{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:12px 14px;border-radius:13px;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 14%,var(--card)),color-mix(in srgb,var(--accent2) 8%,var(--card)));border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line))}
+.net .k{font-size:12px;font-weight:800;color:var(--muted);line-height:1.5}
+.net .k small{display:block;font-size:11.5px;font-weight:700}
+.net .v{font-size:25px;font-weight:900;letter-spacing:-.02em;color:var(--accent);white-space:nowrap;line-height:1.1}
+.nsum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px}
+.nsum div{border:1px solid var(--line);border-radius:10px;padding:6px 8px;background:var(--card2);font-size:11px;font-weight:800;color:var(--muted);line-height:1.4;min-width:0}
+.nsum b{display:block;font-size:13.5px;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn{flex:1 1 90px;border:1px solid var(--line);background:var(--card2);color:var(--fg);font:inherit;font-size:14px;font-weight:800;
+  padding:10px 10px;border-radius:12px;cursor:pointer;min-height:52px;transition:.15s;display:inline-flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1px;text-align:center;line-height:1.25}
+.btn i{font-style:normal;font-size:10.5px;font-weight:700;color:var(--muted)}
+.btn:hover:not(:disabled){border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.pri{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;box-shadow:var(--shadow)}
+.btn.pri i{color:rgba(255,255,255,.88)}
+.btn.pri:hover:not(:disabled){filter:brightness(1.06)}
+@media (prefers-color-scheme:dark){.btn.pri{color:var(--afg)}.btn.pri i{color:rgba(4,32,28,.75)}}
+.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:12px}
+#actions.odd .btn:last-child{grid-column:1 / -1}
+/* ── 한 번에 넣기 ── */
+.bulk{border:1px dashed color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:12px;padding:10px;margin:0 0 10px;
+  background:color-mix(in srgb,var(--accent) 5%,var(--card))}
+.bulk .lab{margin-bottom:6px}
+.bulk .tools{margin-top:8px}
+/* ── 링크로 받은 명세서 띠 ── */
+.shbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 0;padding:12px 14px;border-radius:14px;
+  background:var(--okbg);border:1px solid color-mix(in srgb,var(--ok) 35%,transparent)}
+.shbar .t{flex:1 1 240px;min-width:0;font-size:13px;font-weight:700;line-height:1.55}
+.shbar .t b{display:block;font-size:14.5px;font-weight:800;color:var(--ok)}
+.shbar .t small{display:block;font-size:12px;font-weight:600;color:var(--muted)}
+.shbar.warn{background:var(--warnbg);border-color:color-mix(in srgb,var(--warn) 35%,transparent)}
+.shbar.warn .t b{color:var(--warn)}
+body.shared #form{opacity:.88}
+@media (max-width:979px){body.shared .side{order:0}}
+/* ── 수령 확인 서명판 ── */
+.pad{position:relative;margin-top:10px;border:1.5px dashed #b8c9c4;border-radius:12px;background:#fff;touch-action:none;overflow:hidden}
+.pad canvas{display:block;width:100%;height:150px;cursor:crosshair;touch-action:none}
+.pad span{position:absolute;left:12px;bottom:8px;font-size:11.5px;font-weight:700;color:#98aaa5;pointer-events:none}
+.pad.has span{display:none}
+.mini.pri{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
+@media (prefers-color-scheme:dark){.mini.pri{color:var(--afg)}}
+/* ── 링크 ── */
+.linkbox{margin-top:10px;padding:10px;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));background:var(--card2)}
+.linkbox input{display:block;width:100%;font:inherit;font-size:12.5px;font-weight:600;color:var(--fg);background:var(--card);
+  border:1px solid var(--line);border-radius:9px;padding:9px 10px;min-height:42px}
+.linkbox .tools{margin-top:8px}
+.pvbox{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;justify-content:center;
+  background:color-mix(in srgb,var(--line) 45%,var(--card2))}
+.pvbox canvas{display:block;width:100%;height:auto;background:#fff;box-shadow:0 2px 10px -4px rgba(0,0,0,.35)}
+.pvnav{display:flex;gap:6px;align-items:center;justify-content:center;margin-top:8px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.sq{border:1px solid var(--line);background:var(--card2);color:var(--muted);font:inherit;font-size:15px;font-weight:800;
+  width:44px;height:40px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0}
+.sq:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.sq:disabled{opacity:.35;cursor:default}
+.checks{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.checks li{position:relative;padding:8px 10px 8px 32px;border-radius:10px;font-size:12.5px;font-weight:700;line-height:1.6;background:var(--card2);color:var(--fg)}
+.checks li::before{position:absolute;left:10px;top:8px;font-weight:900}
+.checks li.ok::before{content:'✓';color:var(--ok)}
+.checks li.warn{background:var(--warnbg)} .checks li.warn::before{content:'!';color:var(--warn);left:14px}
+.checks li.bad{background:var(--dangerbg)} .checks li.bad::before{content:'✕';color:var(--danger)}
+.checks li.info::before{content:'i';color:var(--muted);left:14px;font-style:italic}
+.checks li small{display:block;font-size:11.5px;font-weight:600;color:var(--muted)}
+
+.use{list-style:none;margin:0;padding:0}
+.use li{position:relative;padding-left:26px;margin-bottom:13px;font-size:13.5px;font-weight:600;line-height:1.65}
+.use li:last-child{margin-bottom:0}
+.use li::before{content:"▸";position:absolute;left:4px;top:0;color:var(--accent);font-weight:800}
+.use li b{font-weight:800}
+.use li .d{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-top:3px;line-height:1.7}
+@media (min-width:980px){.use{columns:2;column-gap:28px}.use li{break-inside:avoid}}
+.rtab{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;min-width:520px}
+.rtab th,.rtab td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top;line-height:1.55}
+.rtab th{background:var(--card2);font-weight:800}
+.rtab td b{font-weight:800}
+.tscroll{overflow-x:auto;margin-top:6px}
+
+details{border-top:1px solid var(--line);padding:12px 0}
+details:first-of-type{border-top:0}
+summary{cursor:pointer;font-weight:700;font-size:14px;list-style:none;padding:10px 0;margin:-10px 0}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"＋ ";color:var(--accent);font-weight:800}
+details[open] summary::before{content:"－ "}
+details p{margin:8px 0 0;font-size:13.5px;color:var(--muted);line-height:1.8}
+details p b{color:var(--fg)}
+
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:22px;line-height:1.8}
+footer b{color:var(--fg)}
+
+/* ── 모바일 하단 바 ── 입력하는 동안 미리보기가 화면 밖이면 띄운다 */
+#mbar{position:fixed;left:0;right:0;bottom:0;z-index:50;transform:translateY(115%);transition:transform .22s;
+  background:var(--card);border-top:1px solid var(--line);box-shadow:0 -8px 22px -14px rgba(0,0,0,.55);
+  padding:9px 14px calc(9px + env(safe-area-inset-bottom))}
+#mbar.on{transform:none}
+#mbar .in{max-width:700px;margin:0 auto;display:flex;align-items:center;gap:10px}
+#mbar .k{flex:1 1 auto;min-width:0;font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.03em}
+#mbar .k b{display:block;font-size:14.5px;font-weight:900;color:var(--accent);letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#mbar .go{flex:0 0 auto;font:inherit;font-size:13px;font-weight:800;color:#fff;padding:10px 15px;border-radius:999px;border:0;cursor:pointer;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));min-height:42px}
+@media (prefers-color-scheme:dark){#mbar .go{color:var(--afg)}}
+@media (min-width:980px){#mbar{display:none}}
+/* 휴대폰 — 사람 → 시급·기간 → 시간표 → 달력 → 수당·공제 → 명세서 순서 */
+@media (max-width:979px){
+  #form{display:contents}
+  #infoCard{order:1} #payCard{order:2} #schCard{order:3} #calCard{order:4} #dedCard{order:5} .side{order:6}
+}
+
+#toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#0f1f1c;color:#fff;font-size:13.5px;font-weight:700;line-height:1.5;
+  padding:10px 16px;border-radius:14px;width:max-content;opacity:0;pointer-events:none;transition:.25s;z-index:99;max-width:92vw;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media (prefers-color-scheme:dark){#toast{background:#e8f4f1;color:#04201c}}
+
+@media (max-width:430px){
+  .card{padding:14px}
+  .lab{flex-direction:column;align-items:stretch;gap:2px}
+  .lab .hint{text-align:left}
+  .seg button{flex:1 1 70px;font-size:12.5px}
+  .tag{font-size:14px}
+  .cc{min-height:52px}
+  .cc .tg{font-size:9px;letter-spacing:-.03em}
+  .cc:not(.hol) .tg{display:none}
+  .net .v{font-size:22px}
+}
+
+/* ══ 주의 문구 ══ */
+.nbx{border:1px solid var(--warn);border-radius:14px;background:var(--warnbg);padding:14px 15px;margin-top:14px}
+.nbx-h{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:800;color:var(--warn);margin:0 0 10px}
+.nbx-h .ic{flex:0 0 auto;width:19px;height:19px;border-radius:6px;background:var(--warn);color:var(--warnbg);
+  font-size:12px;font-weight:800;display:grid;place-items:center;line-height:1}
+.nbx ul{list-style:none;margin:0;padding:0}
+.nbx li{position:relative;padding-left:12px;margin-bottom:7px;font-size:12px;font-weight:600;line-height:1.68;color:var(--warn)}
+.nbx li:last-child{margin-bottom:0}
+.nbx li::before{content:"·";position:absolute;left:1px;top:-1px;font-weight:800}
+.nbx li b{font-weight:800}
+.nbx .nbx-f{margin:11px 0 0;padding-top:10px;border-top:1px solid color-mix(in srgb,var(--warn) 32%,transparent);
+  font-size:12px;font-weight:700;line-height:1.72;color:var(--warn)}
+.nbx .nbx-f b{font-weight:800}
+
+/* ── 인쇄 — 명세서 쪽만 종이에 싣는다(광고·화면은 빠진다) ── */
+#printArea{display:none}
+@media print{
+  body.printing > *:not(#printArea){display:none !important}
+  body.printing #printArea{display:block}
+  body.printing{background:#fff}
+  #printArea img{display:block;width:210mm;height:297mm;page-break-after:always;break-after:page}
+  #printArea img:last-child{page-break-after:auto;break-after:auto}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ╔══════════════════════════════════════════════════════════════════════╗
+     ║  광고 자리 ① 맨 위 · 320×50 (모바일·PC 같은 크기)                     ║
+     ║  단위 ID 는 스크립트 아래쪽 AD.units 한 곳에서 바꿉니다.               ║
+     ║  ins·script 를 여기 직접 쓰지 않고 AD 가 넣는 이유                     ║
+     ║   · 보이는 자리만 부르려고(안 보이는 광고는 부르지 않음)               ║
+     ║   · 한 페이지 4개 제한을 코드 한 곳에서 지키려고                       ║
+     ║  크기는 휴대폰에 들어가는 것만 씁니다 — 320×50 · 320×100 · 300×250     ║
+     ║  한 화면에 4곳 — 모바일 ① 맨 위 ③ 본문 ④ 완료 카드 ⑤ 하단 오버형      ║
+     ║              PC   ① 맨 위 ② 미리보기 위 ③ 본문 ④ 완료 카드            ║
+     ╚══════════════════════════════════════════════════════════════════════╝ -->
+<div class="ad-slot ad-top" id="ad-top"></div>
+
+<!-- 네이버·카카오 앱 안에서 열렸을 때만 보이는 띠 (body.inapp) -->
+<div class="iabar" id="iabar">
+  <div class="ia-t"><span id="iaMsg">앱 안에서 열려서 PDF·이미지 저장이 안 될 수 있어요.</span>
+    <small id="iaSub">입력하기 전에 옮기면 다시 적지 않아도 됩니다.</small></div>
+  <button class="ia-go" id="iaGo" type="button">크롬에서 열기</button>
+  <button class="ia-x" id="iaX" type="button" aria-label="안내 닫기">✕</button>
+</div>
+
+<header>
+  <div class="logo"><span class="ico">🧾</span><span>시급 임금명세서</span></div>
+  <p class="tag"><b>시급</b>과 <b>출퇴근 시간</b>만 넣으면 주휴수당·가산수당·공제까지 계산된 <b>임금명세서</b>를&nbsp;만들어&nbsp;줍니다</p>
+  <div class="badges">
+    <span class="badge">🔒 급여 정보가 서버로 전송되지 않음</span>
+    <span class="badge gray">2026 최저시급 10,320원 · 2027년 10,700원</span>
+    <span class="badge gray">계산방법 자동 기재</span>
+    <span class="badge gray">PDF · 이미지 · 인쇄</span>
+  </div>
+</header>
+
+<!-- 링크로 받은 명세서를 열었을 때만 보이는 띠 -->
+<div class="shbar hide" id="shBar"><div class="t"><b id="shT"></b><small id="shS"></small></div>
+  <button class="mini" id="shSign" type="button">✍ 수령 확인 서명</button>
+  <button class="mini" id="shEdit" type="button">고쳐서 쓰기</button></div>
+
+<div class="layout">
+<main id="form">
+
+<!-- 1. 사람 -->
+<section class="card" id="infoCard">
+  <h2><span><span class="n">1</span>누구의 명세서인가요</span><span class="h2r" id="staffCnt"></span></h2>
+  <div class="chips hide" id="staffList" aria-label="저장한 직원"></div>
+  <div class="grid2" style="margin-top:10px">
+    <label class="nf"><span>근로자 이름</span><input type="text" id="inName" placeholder="홍길동" autocomplete="off" maxlength="20"></label>
+    <label class="nf"><span>생년월일 또는 사원번호</span><input type="text" id="inBirth" placeholder="2000.01.01" autocomplete="off" maxlength="20"></label>
+    <label class="nf"><span>사업장 이름</span><input type="text" id="inBiz" placeholder="○○카페" autocomplete="off" maxlength="30"></label>
+    <label class="nf"><span>대표자 (선택)</span><input type="text" id="inBoss" placeholder="대표 이름" autocomplete="off" maxlength="20"></label>
+  </div>
+  <div class="tools">
+    <button class="mini" id="saveStaff" type="button">💾 이 직원 저장</button>
+    <button class="mini" id="newStaff" type="button">＋ 새 직원</button>
+  </div>
+  <div class="row" style="margin-top:14px">
+    <div class="lab">사업장 규모<span class="hint">상시 근로자 수(알바 포함)</span></div>
+    <div class="seg" id="segSize">
+      <button type="button" data-v="5">5명 이상<i>연장·야간·휴일 가산 · 공휴일 유급</i></button>
+      <button type="button" data-v="4">5명 미만<i>가산수당 없음 · 주휴수당은 있음</i></button>
+    </div>
+  </div>
+</section>
+
+<!-- 2. 시급·기간 -->
+<section class="card" id="payCard">
+  <h2><span><span class="n">2</span>시급과 급여 기간</span><span class="h2r" id="minTag"></span></h2>
+  <div class="grid2">
+    <label class="nf won"><span>시급</span><input type="text" inputmode="numeric" id="inWage" autocomplete="off"></label>
+    <label class="nf"><span>임금 지급일</span><input type="date" id="inPay"></label>
+  </div>
+  <div class="chips" id="wageChips"></div>
+  <div class="row">
+    <div class="lab">급여 기간<span class="hint" id="perHint"></span></div>
+    <div class="grid2">
+      <label class="nf"><span>연도</span><select id="selY"></select></label>
+      <label class="nf"><span>월</span><select id="selM"></select></label>
+    </div>
+    <div class="seg sm" id="segCut" style="margin-top:8px">
+      <button type="button" data-v="m">1일 ~ 말일</button>
+      <button type="button" data-v="c">마감일이 따로 있어요</button>
+    </div>
+    <div class="grid2 hide" id="cutBox" style="margin-top:8px">
+      <label class="nf"><span>시작일</span><input type="date" id="inPs"></label>
+      <label class="nf"><span>마지막 날</span><input type="date" id="inPe"></label>
+    </div>
+  </div>
+</section>
+
+<!-- 3. 요일별 시간표 -->
+<section class="card" id="schCard">
+  <h2><span><span class="n">3</span>요일별 근무 시간</span><span class="h2r" id="schTag"></span></h2>
+  <p class="fine" style="margin:0 0 10px">근로계약서에 적은 <b>일하는 요일과 시간</b>을 넣으세요. 이 시간표대로 달력이 채워지고, 주휴수당도 이 시간(소정근로시간)으로 셉니다.</p>
+  <div class="bulk" id="bulk">
+    <div class="lab">한 번에 넣기<span class="hint">시간을 고르고 적용할 요일을 누르세요</span></div>
+    <div class="tm" id="bulkTm"></div>
+    <div class="tools">
+      <button class="mini pri" type="button" data-bulk="wd">월~금에 적용</button>
+      <button class="mini" type="button" data-bulk="we">토·일에 적용</button>
+      <button class="mini" type="button" data-bulk="on">켜 둔 요일 모두</button>
+    </div>
+  </div>
+  <div class="sched" id="sched"></div>
+  <div class="ssum" id="schSum"></div>
+  <label class="chk"><input type="checkbox" id="cHolWork"><span>공휴일에도 시간표대로 일해요<i>끄면 근무 요일에 걸린 공휴일(설·추석·대체공휴일 등)을 쉬는 날로 채웁니다 · 5명 이상이면 쉬어도 유급</i></span></label>
+  <div class="row">
+    <div class="lab">주휴일<span class="hint">한 주가 끝나는 날 · 보통 일요일</span></div>
+    <select class="sel" id="selWhd"></select>
+  </div>
+</section>
+
+<!-- 4. 근무 달력 -->
+<section class="card" id="calCard">
+  <h2><span><span class="n">4</span>이번 달 근무 달력</span><span class="h2r" id="calTag"></span></h2>
+  <p class="fine" style="margin:0 0 10px">시간표와 다르게 일한 날만 <b>날짜를 눌러</b> 고치세요 — 더 일한 날, 결근, 쉬기로 한 날, 연차. 흐린 칸은 앞뒤 달이라 <b>주휴수당 판정</b>에만 씁니다.</p>
+  <div class="seg sm" id="segCal0" style="margin:0 0 10px">
+    <button type="button" data-v="1">월요일부터</button>
+    <button type="button" data-v="0">일요일부터 (일월화수목금토)</button>
+  </div>
+  <div class="calh" id="calHead"></div>
+  <div class="calg" id="calGrid"></div>
+  <div class="legend">
+    <span><i style="background:color-mix(in srgb,var(--accent) 18%,var(--card))"></i>근무</span>
+    <span><i style="background:var(--dangerbg)"></i>결근</span>
+    <span><i style="background:var(--okbg)"></i>연차(유급)</span>
+    <span><i style="background:var(--warn);border-radius:50%;width:8px;height:8px"></i>시간표와 다름</span>
+  </div>
+  <div class="dayed hide" id="dayEd"></div>
+  <div class="sub-h">주휴수당 · 주마다</div>
+  <div class="weeks" id="weeks"></div>
+  <div class="tools"><button class="mini danger" id="resetCal" type="button">↺ 시간표대로 다시 채우기</button></div>
+</section>
+
+<!-- 5. 수당·공제 -->
+<section class="card" id="dedCard">
+  <h2><span><span class="n">5</span>추가 수당과 공제</span></h2>
+  <div class="lab">더 주는 돈<span class="hint">식대·교통비·상여금 등</span></div>
+  <div id="extras"></div>
+  <div class="tools" id="extraAdd">
+    <button class="mini" type="button" data-n="식대" data-tf="1">＋ 식대 <span style="color:var(--muted)">비과세</span></button>
+    <button class="mini" type="button" data-n="교통비">＋ 교통비</button>
+    <button class="mini" type="button" data-n="상여금">＋ 상여금</button>
+    <button class="mini" type="button" data-n="">＋ 직접 입력</button>
+  </div>
+
+  <div class="sub-h">빼는 돈 (공제)</div>
+  <div class="seg" id="segDed" style="margin-top:10px">
+    <button type="button" data-v="none">공제 없음<i>세금·보험 없이</i></button>
+    <button type="button" data-v="ins">4대보험·소득세<i>근로소득 · 간이세액</i></button>
+    <button type="button" data-v="biz">3.3%<i>사업소득 원천징수</i></button>
+    <button type="button" data-v="day">일용직<i>하루 15만원 공제</i></button>
+  </div>
+  <div id="insBox" class="hide">
+    <div class="grid2" style="margin-top:8px">
+      <label class="chk"><input type="checkbox" id="cNp"><span>국민연금<i id="npRate"></i></span></label>
+      <label class="chk"><input type="checkbox" id="cHi"><span>건강·장기요양<i id="hiRate"></i></span></label>
+      <label class="chk"><input type="checkbox" id="cEi"><span>고용보험<i>0.9%</i></span></label>
+      <label class="chk"><input type="checkbox" id="cTax"><span>소득세<i>간이세액표</i></span></label>
+    </div>
+    <div class="grid2" id="famBox">
+      <label class="nf"><span>공제대상 가족 수 (본인 포함)</span><select id="selFam"></select></label>
+      <label class="nf"><span>그중 8~20세 자녀</span><select id="selKids"></select></label>
+    </div>
+  </div>
+  <div id="dayBox" class="hide">
+    <label class="chk"><input type="checkbox" id="cDayEi"><span>고용보험 0.9%도 뗀다<i>일용근로자도 고용보험 대상입니다</i></span></label>
+  </div>
+  <table class="dtab" id="dedTab"></table>
+  <div class="note info hide" id="dedNote"></div>
+
+  <div class="lab" style="margin-top:16px">그 밖에 빼는 돈<span class="hint">가불금 등 · 근로자 동의가 있어야 합니다</span></div>
+  <div id="minus"></div>
+  <div class="tools"><button class="mini" id="addMinus" type="button">＋ 공제 항목 추가</button></div>
+</section>
+
+</main>
+
+<aside class="side" id="side">
+  <!-- 광고 자리 ② PC 미리보기 카드 바로 위 320×50 · 좁은 화면에서는 숨깁니다 -->
+  <div class="ad-slot" id="ad-side"></div>
+  <section class="card" id="pvCard">
+    <h2><span>임금명세서</span><span class="h2r" id="pvState"></span></h2>
+    <div class="net"><div class="k">실수령액<small id="netSub"></small></div><div class="v" id="netV">0원</div></div>
+    <div class="nsum">
+      <div>지급액 계<b id="sPay">0원</b></div>
+      <div>공제액 계<b id="sDed">0원</b></div>
+      <div>근로시간<b id="sHrs">0시간</b></div>
+    </div>
+    <div class="actions" id="actions">
+      <button class="btn pri" id="dlPdf" type="button">PDF로 저장<i>A4 한 장</i></button>
+      <button class="btn" id="dlPng" type="button">이미지로 저장<i>PNG · 카톡 전송용</i></button>
+      <button class="btn" id="doLink" type="button">링크 만들기<i>보내기 · 보관</i></button>
+      <button class="btn" id="doPrint" type="button">인쇄<i>A4</i></button>
+      <button class="btn hide" id="doShare" type="button">바로 보내기<i>카톡·문자로 이미지</i></button>
+    </div>
+    <div class="linkbox hide" id="linkBox">
+      <input type="text" id="linkUrl" readonly aria-label="명세서 링크">
+      <div class="tools"><button class="mini pri" id="linkCopy" type="button">링크 복사</button><button class="mini hide" id="linkShare" type="button">보내기</button><button class="mini" id="linkHide" type="button">닫기</button></div>
+      <p class="fine" id="linkNote"></p>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <div class="lab">근무 기록<span class="hint">명세서 아래에 붙는 날짜별 기록</span></div>
+      <div class="seg sm" id="segLog">
+        <button type="button" data-v="none">넣지 않음</button>
+        <button type="button" data-v="list">목록형</button>
+        <button type="button" data-v="cal">달력형</button>
+      </div>
+    </div>
+    <label class="chk"><input type="checkbox" id="cPyck"><span>지급 확인란 넣기 (사업주)<i>「위와 같이 지급합니다」 · 지급일 · 사업장 이름과 (인)</i></span></label>
+    <label class="chk" id="rowBsig" style="padding-left:29px"><input type="checkbox" id="cBsig"><span>사업주도 서명하기<i>(인) 자리에 도장 대신 손 서명 · 아래 서명판에서 「사업주 서명」 선택</i></span></label>
+    <label class="chk"><input type="checkbox" id="cRcpt"><span>수령 확인란 넣기 (근로자)<i>근로자가 받았다는 서명 칸 · 아래에서 손가락으로 서명</i></span></label>
+    <div class="pvbox"><canvas id="pv" width="10" height="10" aria-label="임금명세서 미리보기"></canvas></div>
+    <div class="pvnav hide" id="pvNav"><button class="sq" id="pvPrev" type="button" aria-label="앞 쪽">‹</button><span id="pvPos">1 / 1쪽</span><button class="sq" id="pvNext" type="button" aria-label="다음 쪽">›</button></div>
+    <ul class="checks" id="checks"></ul>
+  </section>
+
+  <!-- 수령 확인 — 근로자가 손가락으로 서명하면 명세서 「수령 확인」 칸에 들어간다 -->
+  <section class="card hide" id="rcCard">
+    <h2><span id="rcTitle">수령 확인 · 근로자 서명</span><span class="h2r" id="rcState"></span></h2>
+    <div class="seg sm hide" id="segSigT" style="margin-bottom:10px">
+      <button type="button" data-v="w">근로자 서명<i>수령 확인 칸</i></button>
+      <button type="button" data-v="b">사업주 서명<i>지급 확인 칸</i></button>
+    </div>
+    <p class="fine" style="margin-top:0" id="rcDesc"></p>
+    <div class="pad" id="pad"><canvas id="sigPad" aria-label="서명판"></canvas><span>여기에 서명하세요</span></div>
+    <div class="tools">
+      <button class="mini" id="sigClear" type="button">지우기</button>
+      <button class="mini pri" id="sigOk" type="button">서명 넣기</button>
+      <button class="mini danger hide" id="sigDel" type="button">서명 빼기</button>
+    </div>
+    <div class="note info hide" id="rcDone"></div>
+  </section>
+
+  <!-- 광고 자리 ④ 저장 완료 카드 300×250 — 누른 다음에 펼쳐지고, 화면을 덮지 않습니다.
+       닫기는 카드 머리(광고에서 멀리 떨어진 곳)에 둡니다 — 광고 안 닫기 버튼은 금지 -->
+  <section class="card hide" id="doneCard">
+    <h2><span id="doneTitle">저장했습니다</span><button class="mini" id="doneHide" type="button">닫기</button></h2>
+    <p class="dmsg" id="doneMsg"></p>
+    <ol class="dsteps">
+      <li>임금명세서는 <b>임금을 줄 때마다</b> 함께 줘야 합니다. 종이 대신 <b>카톡·문자·이메일</b>로 보내도 교부로 인정됩니다.</li>
+      <li>보내기 전에 <b>근무 기록과 금액</b>을 근로자와 한 번 맞춰 보세요. 달력에서 날짜를 누르면 고칠 수 있습니다.</li>
+      <li>명세서와 근무 기록은 <b>3년 동안 보관</b>하세요(근로기준법 제42조, 임금대장·서류 보존).</li>
+    </ol>
+    <p class="dwarn hide" id="doneInapp">파일이 안 보이나요? 앱 안 브라우저는 내려받기가 막혀 있습니다.
+      <button type="button" id="doneGo">다른 브라우저로 열기</button></p>
+    <div id="doneAd"><span class="ad-lab">광고</span><div class="ad-slot" id="ad-done"></div></div>
+  </section>
+</aside>
+</div>
+
+<!-- 광고 자리 ③ 본문 중간 320×100 — 입력 카드와 명세서가 다 끝난 자리에 둡니다(입력 중 광고 금지 조항).
+     버튼·입력칸에서 18px 이상 떼어 놓습니다. 모바일·PC 가 같은 자리라 단위 ID 하나면 됩니다 -->
+<div class="ad-slot" id="ad-mid"></div>
+
+<section class="card">
+  <h2><span>이렇게 계산합니다</span></h2>
+  <div class="tscroll">
+  <table class="rtab">
+    <tr><th>항목</th><th>계산</th><th>언제</th></tr>
+    <tr><td><b>기본급</b></td><td>시급 × 일한 시간(휴게 뺀 시간)</td><td>모든 근무. 연장·휴일근로 시간은 아래 수당에서 따로 셉니다</td></tr>
+    <tr><td><b>주휴수당</b></td><td>시급 × 주 약속 시간 ÷ 40 × 8시간 (최대 8시간)</td><td>한 주 약속 시간이 <b>15시간 이상</b>이고 그 주에 <b>결근이 없을 때</b> · 사업장 규모와 무관</td></tr>
+    <tr><td><b>연장근로수당</b></td><td>시급 × 1.5 × 시간</td><td>5명 이상 · 하루 8시간·주 40시간을 넘긴 시간, 단시간 근로자는 <b>약속한 시간을 넘긴 시간</b></td></tr>
+    <tr><td><b>야간근로수당</b></td><td>시급 × 0.5 × 시간 (기본급에 더해)</td><td>5명 이상 · 밤 10시 ~ 아침 6시에 일한 시간</td></tr>
+    <tr><td><b>휴일근로수당</b></td><td>시급 × 1.5 (8시간까지) · × 2 (넘는 시간)</td><td>5명 이상 · 주휴일·공휴일에 일한 시간</td></tr>
+    <tr><td><b>유급휴일수당</b></td><td>시급 × 그 요일 약속 시간</td><td>근무 요일에 걸린 <b>공휴일</b>(5명 이상)과 <b>노동절</b>(모든 사업장) · 쉬어도 받습니다</td></tr>
+  </table>
+  </div>
+  <p class="fine">금액은 항목마다 원 단위에서 반올림합니다. 휴게시간이 밤 10시를 걸치면 휴게를 근무 시간 전체에 고르게 나눠 야간 시간을 셉니다.
+    공제는 2026년 요율(국민연금 4.75%·건강보험 3.595%·장기요양 건강보험료의 13.14%·고용보험 0.9%)이고, 2027년 1월분부터는 국민연금 5%(연금 개혁 일정)·건강보험 3.595%(동결)를 씁니다.
+    <b>2027년 장기요양보험료율은 아직 정해지지 않아</b> 2026년 비율로 계산합니다.</p>
+</section>
+
+<section class="card">
+  <h2><span>이럴 때 씁니다</span></h2>
+  <ul class="use">
+    <li><b>알바생 월급날, 명세서를 같이 보내야 할 때</b>
+      <span class="d">시급과 요일별 시간만 넣으면 달력대로 시간을 세서 명세서가 나옵니다. PDF·이미지로 저장해 <b>카톡으로 보내면</b> 교부 끝.</span></li>
+    <li><b>시간이 들쭉날쭉한 달</b>
+      <span class="d">대타로 더 일한 날, 결근한 날, 쉬기로 한 날만 달력에서 눌러 고치면 주휴수당이 주마다 다시 판정됩니다.</span></li>
+    <li><b>추석·설 연휴가 낀 달</b>
+      <span class="d">5명 이상 사업장이면 근무 요일에 걸린 공휴일은 쉬어도 유급, 일하면 1.5배입니다. 2026년부터 공휴일이 된 <b>노동절·제헌절</b>과 대체공휴일도 들어 있습니다.</span></li>
+    <li><b>알바생이 내 월급이 맞는지 확인할 때</b>
+      <span class="d">받은 돈과 명세서 금액을 맞춰 보세요. 주휴수당이 빠졌는지, 최저시급보다 낮은지 오른쪽 점검 목록에 바로 나옵니다.</span></li>
+  </ul>
+</section>
+
+<section class="card">
+  <h2><span>자주 묻는 것</span></h2>
+
+  <details>
+    <summary>알바 한 명뿐인데도 임금명세서를 줘야 하나요?</summary>
+    <p>줘야 합니다. 2021년 11월 19일부터 <b>근로기준법 제48조 제2항</b>으로 모든 사업장이 임금을 줄 때 명세서를 함께 줘야 하고,
+      <b>근로자 수·근무 시간과 상관없이</b> 알바·단시간 근로자도 포함됩니다. 안 주거나 필수 항목을 빠뜨리면 <b>500만원 이하 과태료</b> 대상입니다.
+      적어야 할 것은 시행령 제27조의2의 여섯 가지 — 근로자를 알아볼 정보, 지급일, 임금 총액, 항목별 금액, <b>시간에 따라 달라지는 항목의 계산방법</b>(연장·야간·휴일은 시간 수 포함), 공제 내역입니다.
+      시급제는 거의 모든 항목이 시간에 따라 달라지므로 이 도구는 항목마다 계산방법을 자동으로 적습니다.</p>
+  </details>
+
+  <details>
+    <summary>주휴수당은 어떤 주에 생기나요?</summary>
+    <p>한 주에 일하기로 약속한 시간(소정근로시간)이 <b>15시간 이상</b>이고, 그 주의 근무일에 <b>결근하지 않았으면</b> 생깁니다.
+      금액은 <b>주 약속 시간 ÷ 40 × 8시간</b>만큼의 시급입니다(주 40시간 이상이면 8시간). 주 20시간이면 4시간분입니다.
+      지각·조퇴는 결근이 아니라 주휴수당이 그대로 생기고, 서로 합의해 쉰 날은 달력에서 「쉬는 날」로 두면 됩니다(그만큼 그 주 약속 시간이 줄어듭니다).
+      달력 아래 주마다 판정 결과와 이유가 나오고, 사정이 있으면 주마다 넣고 뺄 수 있습니다.</p>
+  </details>
+
+  <details>
+    <summary>달이 바뀌는 주의 주휴수당은 어느 달에 넣나요?</summary>
+    <p>이 도구는 <b>주휴일(한 주의 마지막 날)이 들어 있는 달</b>의 명세서에 넣습니다. 예를 들어 9월 28일(월)~10월 4일(일) 주는 10월분에 들어갑니다.
+      매달 같은 규칙으로 만들면 빠지거나 두 번 들어가는 주가 없습니다. 그래서 달력에는 앞뒤 달 날짜도 흐리게 보이고, 그 날짜의 근무도 주휴 판정에 씁니다.
+      회사가 다른 규칙(예: 그달 근무일 비율로 나누기)을 쓰고 있다면 그 규칙대로 주마다 넣고 빼 주세요.</p>
+  </details>
+
+  <details>
+    <summary>5명 미만 사업장이면 무엇이 달라지나요?</summary>
+    <p>상시 근로자 4명 이하 사업장에는 근로기준법 제56조(연장·야간·휴일 가산)와 제55조 제2항(공휴일 유급휴일)이 적용되지 않습니다.
+      그래서 밤에 일해도, 8시간을 넘겨도 <b>시급 그대로</b>입니다. 반면 <b>주휴수당은 5명 미만도 똑같이</b> 줘야 하고,
+      <b>노동절(5월 1일)</b>은 별도 법률로 정한 유급휴일이라 사업장 규모와 상관없이 유급입니다. 근로자 수에는 알바·단시간 근로자도 들어갑니다.</p>
+  </details>
+
+  <details>
+    <summary>알바가 약속보다 1시간 더 일했는데, 8시간이 안 돼도 가산인가요?</summary>
+    <p>5명 이상 사업장이면 그렇습니다. 기간제법 제6조는 <b>단시간 근로자가 약속한 시간을 넘겨 일한 시간</b>에 50%를 더 주도록 정합니다(하루 8시간이 안 돼도).
+      그래서 달력에서 그날 퇴근 시간을 늦추면 넘긴 시간만큼 연장근로수당이 붙습니다. 대타가 아니라 <b>근무일을 서로 바꾼 날</b>이면
+      날짜 편집 칸의 「근무일을 바꾼 날」을 켜 두세요 — 그날은 가산하지 않습니다. 5명 미만 사업장은 이 조항도 적용되지 않습니다.</p>
+  </details>
+
+  <details>
+    <summary>공휴일에 쉬었는데 돈을 받나요?</summary>
+    <p>5명 이상 사업장은 2022년부터 관공서 공휴일(설·추석 연휴, 대체공휴일 포함)이 민간에서도 <b>유급휴일</b>입니다.
+      시급제라면 <b>그 공휴일이 원래 일하는 요일일 때</b> 그날 약속 시간만큼 유급휴일수당을 받고, 그날 일했다면 휴일근로수당(1.5배)이 따로 더해집니다.
+      원래 쉬는 요일에 걸린 공휴일은 해당하지 않습니다. 임시공휴일은 정부가 발표한 뒤에 도구에 들어가니, 없으면 달력에서 직접 조정하세요.</p>
+  </details>
+
+  <details>
+    <summary>4대보험과 3.3% 중 무엇으로 떼야 하나요?</summary>
+    <p>사장님이 시간과 장소를 정해 일을 시키는 알바는 <b>근로자</b>라 원칙은 근로소득(4대보험·간이세액)입니다.
+      3.3%는 프리랜서 같은 <b>사업소득</b>을 원천징수하는 방식이라, 근로자에게 쓰면 뒤에 4대보험 소급·세금 문제가 생길 수 있습니다.
+      다만 <b>월 60시간 미만</b>(대략 주 15시간 미만) 단시간 근로자는 국민연금·건강보험 가입 대상에서 빠지고, 고용보험도 원칙적으로 빠집니다(3개월 이상 계속 일하면 고용보험 적용).
+      도구가 이번 달 시간을 보고 해당하는지 알려 줍니다. 자동으로 계산한 공제액은 칸에 직접 적어 고칠 수 있습니다.</p>
+  </details>
+
+  <details>
+    <summary>소득세가 0원으로 나와요</summary>
+    <p>정상입니다. 매달 떼는 소득세는 국세청 <b>근로소득 간이세액표</b>로 정하는데, 공제대상 가족이 본인 1명일 때 <b>월 과세 급여 약 106만원 이하</b>는 세액이 0원입니다.
+      가족 수를 늘리면 0원 구간이 더 넓어집니다. 식대처럼 비과세로 표시한 돈은 과세 급여에서 빠집니다(식대는 월 20만원까지).</p>
+  </details>
+
+  <details>
+    <summary>「링크 만들기」로 보낸 명세서는 어디에 저장되나요?</summary>
+    <p>어디에도 저장되지 않습니다. 명세서 입력값을 압축해 <b>주소의 # 뒤</b>에 담아 두는 방식이라, 링크를 열면 그 브라우저가 같은 명세서를 다시 그립니다.
+      # 뒤의 내용은 인터넷 주소 규칙상 서버로 전송되지 않습니다. 그래서 링크를 메모나 카톡 「나와의 채팅」에 붙여 두면 몇 달 뒤에도 같은 명세서를 열 수 있고,
+      반대로 <b>링크를 가진 사람은 누구나 내용을 볼 수 있으니</b> 받을 사람에게만 보내세요. 링크로 연 화면은 보기 전용이고 받는 사람의 브라우저 기록을 덮지 않습니다.</p>
+  </details>
+
+  <details>
+    <summary>근로자 수령 확인 서명은 어떻게 받나요?</summary>
+    <p>두 가지 방법이 있습니다. ① 같이 있을 때 명세서 아래 <b>서명판</b>에 근로자가 손가락으로 서명하고 「서명 넣기」. ② <b>링크 만들기</b>로 보내면 근로자가 자기 휴대폰에서 명세서를 열어 서명하고,
+      「서명한 링크 보내기」로 돌려보냅니다. 받은 링크를 열면 맨 위에 「○○ 님이 ○월 ○일에 수령 확인 서명」이 뜨고 명세서 「수령 확인」 칸에 서명이 들어가 있습니다.
+      사업주도 「사업주도 서명하기」를 켜면 서명판에서 「사업주 서명」을 골라 지급 확인 칸의 (인) 자리에 손 서명을 넣을 수 있습니다.
+      지급 확인란·수령 확인란은 각각 끌 수 있습니다. 서명한 뒤 금액·날짜·이름이 하나라도 바뀌면 <b>서명은 자동으로 빠집니다</b>. 이 서명은 받았다는 확인용 메모이며 공인 전자서명은 아닙니다.</p>
+  </details>
+
+  <details>
+    <summary>카톡으로 보내도 교부한 것이 되나요?</summary>
+    <p>됩니다. 근로기준법은 임금명세서를 <b>서면(전자문서 포함)</b>으로 주라고 정해 이메일·문자·메신저로 보내는 것도 인정됩니다.
+      「이미지로 저장」은 휴대폰에서 바로 보기 좋은 그림 한 장이고, 휴대폰에서는 「바로 보내기」로 카톡 공유 창을 열 수 있습니다.
+      다만 가게 게시판에 붙여 두는 것처럼 본인에게 따로 전달하지 않는 방식은 교부가 아닙니다.</p>
+  </details>
+
+  <details>
+    <summary>입력한 급여 정보는 어디에 남나요?</summary>
+    <p>서버로 보내지 않습니다. 계산·명세서 그리기·PDF 만들기가 모두 이 브라우저 안에서 끝납니다.
+      다음 달에 다시 쓰기 편하도록 입력 내용과 「이 직원 저장」한 목록은 <b>이 기기의 브라우저에만</b> 남고, 칩의 ✕ 를 누르면 지워집니다.
+      공용 PC에서 썼다면 저장한 직원을 지우고 창을 닫으세요.</p>
+  </details>
+
+  <details>
+    <summary>네이버·카카오톡 앱에서 열었더니 저장이 안 돼요</summary>
+    <p>앱 안에서 열리는 화면(인앱 브라우저)은 <b>파일 내려받기와 인쇄가 막혀 있는 경우가 많습니다.</b>
+      그래서 앱 안에서 열면 안내 창이 먼저 뜹니다. <b>크롬에서 열기</b>(아이폰은 주소 복사 후 사파리)로 옮긴 다음 써 주세요.</p>
+  </details>
+</section>
+
+<!-- ══ 주의 문구 ══ -->
+<div class="nbx">
+  <div class="nbx-h"><span class="ic">!</span><span>명세서를 보내기 전에 확인하세요</span></div>
+  <ul>
+    <li><b>계산 결과는 참고용입니다.</b> 근로계약·취업규칙·단체협약에 따라 수당 계산이 달라질 수 있고, 실제 지급·공제액은 사업장의 급여대장이 기준입니다.</li>
+    <li>4대보험료는 <b>이번 달 급여로 어림한 값</b>입니다. 실제로는 신고한 보수월액·정산에 따라 공단 고지액과 다를 수 있으니, 고지서 금액이 있으면 칸에 직접 적으세요.
+      소득세는 간이세액표(100%) 기준이며 연말정산에서 다시 정산됩니다.</li>
+    <li>공휴일은 2025~2028년 관공서 공휴일·대체공휴일·선거일을 넣었습니다. <b>임시공휴일</b>은 발표 뒤에 반영되니 확인해 주세요.</li>
+    <li>명세서에는 생년월일 같은 <b>개인정보</b>가 들어갑니다. 받는 사람을 확인하고 보내고, 공용 PC에서는 저장한 직원을 지우세요.</li>
+    <li>최저임금보다 낮은 시급, 주휴수당 누락은 법 위반입니다. 도구의 점검 목록은 입력한 값만 보고 판단하므로 계약 내용과 함께 확인하세요.</li>
+  </ul>
+  <p class="nbx-f">이 도구는 <b>법률·세무 자문이 아니며 있는 그대로 제공됩니다.</b> 계산 결과나 명세서를 사용해 생긴
+    어떠한 손해·분쟁에 대해서도 <b>제작자와 운영자는 법적 책임을 지지 않습니다.</b> 판단이 필요하면 고용노동부 상담센터(국번 없이 1350)나 노무사에게 확인하세요.</p>
+</div>
+
+<footer>
+  <b>시급 임금명세서 작성기</b> · 업로드 없이 브라우저에서 처리<br>
+  근로기준법 제48조·시행령 제27조의2 기재사항 · 2025~2028년 공휴일 · 외부 라이브러리 없음<br>
+  급여 정보는 어디에도 전송되지 않으며, 페이지를 연 뒤에는 인터넷 없이도 동작합니다.
+</footer>
+</div>
+
+<!-- 앱 안(네이버·카카오톡 등)에서 열렸을 때 사용을 막는 창.
+     WebView 는 파일 내려받기·인쇄를 못 해서, 다 입력해도 명세서를 저장할 수 없다 -->
+<div class="iamodal" id="iaModal" role="dialog" aria-modal="true" aria-labelledby="iaTitle">
+  <div class="iasheet">
+    <div class="iaic">📱</div>
+    <h2 id="iaTitle">앱 안에서는 명세서를 저장할 수 없습니다</h2>
+    <p class="iap" id="iaDesc"></p>
+    <ol class="iasteps" id="iaSteps"></ol>
+    <button class="iabtn" id="iaGo2" type="button">크롬에서 열기</button>
+    <p class="iafine"><button type="button" id="iaStay">저장은 안 해도 돼요 · 계산만 볼게요</button></p>
+  </div>
+</div>
+
+<!-- 광고 자리 ⑤ 하단 오버형 320×50(모바일) — 읽는 구간에서만 올라오고, 입력 중·미리보기 중·창이 열렸을 때는
+     내려가 있습니다. 바 높이만큼 본문 아래 여백을 늘려 아무것도 가리지 않습니다 -->
+<div id="anchor"><span class="amk">광고</span><div class="ad-slot" id="ad-anchor"></div>
+  <button class="axl" id="anchorX" type="button" aria-label="광고 닫기">✕</button></div>
+
+<div id="mbar"><div class="in"><div class="k">실수령액<b id="mbarTxt">0원</b></div><button class="go" id="mbarGo" type="button">명세서 ↓</button></div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="printArea"></div>
+<script>
+/* 근로소득 간이세액표 — 소득세법 시행령 [별표2] (year_end_tax 에서 가져온 꺾은선 압축본, 오차 300원/월 이내)
+   GX: 월급여액(천원) 꺾은점, GY[n-1]: 공제대상가족 n명일 때의 월 세액 */
+const GX=[770,1055,1060,1305,1335,1340,1710,1720,1880,1890,2000,2050,2060,2220,2230,2390,2400,2560,2570,2590,2620,2720,2730,2760,2790,2880,2890,2920,2990,3020,3040,3080,3200,3220,3240,3360,3420,3520,3540,3560,3580,3700,3740,3760,3780,3840,3860,3920,3980,4000,4020,4140,4180,4300,4320,4340,4440,4460,4480,4520,4540,4560,4580,4700,4860,5000,5820,5840,5860,5880,6080,6120,6620,6660,6760,6780,6900,6920,7040,7060,7180,7200,7320,7340,7480,7620,7760,8360,9200,9420,9980,10000];
+const GY=[
+  [0,0,1040,4840,5460,5560,13260,13460,16770,16970,19520,21130,21450,26590,26910,32050,32380,37650,38000,38830,41400,49960,50810,53380,55950,63650,64510,67070,73060,76060,77770,81190,91460,93170,95430,110100,117440,129660,132110,134550,137000,151670,156560,163920,166590,174600,177270,185280,193290,195960,198630,214650,219990,236010,238680,241350,254700,257370,260040,265650,268450,271260,276560,293390,315830,335470,450470,470380,475720,478690,524050,533120,646520,655590,678270,682810,710020,714560,741780,746310,773530,778060,805280,809820,841570,873320,905070,1041420,1237980,1312890,1503990,1507400],
+  [0,0,0,0,0,1060,8760,8960,12270,12470,14750,15780,15990,19590,19910,25050,25380,30650,31000,31680,32710,36130,36470,37500,38530,46150,47010,49570,55560,58560,60270,63690,73960,75670,77380,87650,92790,104660,107110,109550,112000,126670,131560,136090,138740,146710,149360,157330,165290,167950,170600,186530,191840,207770,210430,213080,226360,229010,231670,237250,240040,242830,248120,264860,287180,306710,421100,441000,446320,449140,477340,485760,598560,607590,630150,634660,661730,666240,693320,697830,724900,729410,756480,761000,792580,824160,855750,991370,1186920,1238140,1428170,1431570],
+  [0,0,0,0,0,0,0,1040,4220,4410,6600,7590,7790,10960,11160,14340,14530,17800,18010,18430,19250,22550,22880,23870,24850,27820,28150,29140,31450,32600,33260,34580,38540,40120,41770,51510,56200,64030,65590,67150,68720,78110,81230,84260,85970,91100,92820,99810,107150,109590,112040,126710,131600,146270,148710,151160,163380,165830,168270,173430,176010,178590,183670,199150,219790,237850,343630,372100,377240,379880,406280,411560,477560,485540,506660,510880,536230,540450,565800,570020,595360,599590,624930,629160,658720,688290,717860,844840,1028300,1076350,1198650,1200840],
+  [0,0,0,0,0,0,0,0,0,1040,3220,4210,4410,7590,7790,10960,11160,14420,14630,15060,15690,17810,18030,18660,19600,22570,22900,23890,26200,27350,28010,29330,33290,33950,34610,38500,43080,50900,52460,54030,55590,64980,68110,71130,72850,77980,79690,84830,89960,91670,93380,107960,112850,127520,129960,132410,144630,147080,149520,154680,157260,159840,164920,180400,201040,219100,324880,353350,358490,361130,387530,392810,458810,464090,477290,480880,506230,510450,535800,540020,565360,569590,594930,599160,628720,658290,687860,814840,998300,1046350,1168650,1170840],
+  [0,0,0,0,0,0,0,0,0,0,0,0,1040,4210,4410,7590,7780,11050,11260,11680,12320,14440,14650,15290,15920,17830,18040,18680,20950,22100,22760,24080,28040,28700,29360,33250,35130,38260,39340,40900,42470,51860,54980,58010,59720,64850,66570,71700,76840,78550,80260,90530,94100,108770,111210,113660,125880,128330,130770,135930,138510,141090,146170,161650,182290,200350,306130,334600,339740,342380,368780,374060,440060,445340,458540,461180,477020,480450,505800,510020,535360,539590,564930,569160,598720,628290,657860,784840,968300,1016350,1138650,1140840],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1040,4210,4410,7670,7880,8310,8940,11060,11280,11910,12550,14460,14670,15300,16790,17530,17950,18830,22790,23450,24110,28000,29880,33010,33630,34260,34880,38730,41860,44880,46600,51730,53440,58580,63710,65420,67130,77400,80830,91090,92810,94910,107130,109580,112020,117180,119760,122340,127420,142900,163540,181600,287380,315850,320990,323630,350030,355310,421310,426590,439790,442430,458270,460910,476750,480020,505360,509590,534930,539160,568720,598290,627860,754840,938300,986350,1108650,1110840],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1030,4300,4510,4930,5570,7690,7900,8540,9170,11080,11290,11930,13410,14150,14580,15430,17970,18390,18860,22750,24630,27760,28380,29010,29630,33390,34640,35850,36540,38600,40320,45450,50590,52300,54010,64280,67700,77970,79680,81390,89950,91660,93370,98430,101010,103590,108670,124150,144790,162850,268630,297100,302240,304880,331280,336560,402560,407840,421040,423680,439520,442160,458000,460640,476480,479590,504930,509160,538720,568290,597860,724840,908300,956350,1078650,1080840],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1130,1560,2190,4310,4530,5160,5800,7710,7920,8550,10040,10780,11200,12050,14590,15020,15440,17950,19380,22510,23130,23760,24380,28140,29390,30600,31290,33340,34020,36080,38130,39170,40880,51150,54580,64840,66560,68270,76820,78540,80250,83860,85670,87470,89920,105400,126040,144100,249880,278350,283490,286130,312530,317810,383810,389090,402290,404930,420770,423410,439250,441890,457730,460370,476210,479160,508720,538290,567860,694840,878300,926350,1048650,1050840],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1150,1790,2420,4330,4540,5180,6660,7400,7830,8680,11220,11640,12070,14570,15780,17790,18190,18590,19130,22890,24140,25350,26040,28090,28770,30830,32880,33570,34250,38360,41450,51720,53430,55140,63700,65410,67120,70730,72540,74350,76150,86990,107290,125350,231130,259600,264740,267380,293780,299060,365060,370340,383540,386180,402020,404660,420500,423140,438980,441620,457460,460100,478720,508290,537860,664840,848300,896350,1018650,1020840],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1170,1800,3290,4030,4450,5300,7840,8270,8690,11200,12400,14410,14820,15220,15620,18030,18890,20100,20790,22840,23520,25580,27630,28320,29000,33110,34480,38590,40310,42020,50570,52290,54000,57610,59420,61220,63030,73860,88540,106600,212380,240850,245990,248630,275030,280310,346310,351590,364790,367430,383270,385910,401750,404390,420230,422870,438710,441350,459830,478310,507860,634840,818300,866350,988650,990840],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1080,1930,4470,4890,5320,7820,9030,11040,11440,11840,12250,14660,15460,16240,16680,18000,18440,20330,22380,23070,23750,27860,29230,33330,34020,34700,38130,39160,40870,44480,46290,48100,49900,60740,75190,87850,193630,222100,227240,229880,256280,261560,327560,332840,346040,348680,364520,367160,383000,385640,401480,404120,419960,422600,441080,459560,478040,604840,788300,836350,958650,960840]
+];
+
+/* 관공서 공휴일 2025~2028 (calendar_maker 의 계산 결과 — 대체공휴일·선거일 포함) */
+const HOL_LIST = [[20250101,"신정"],[20250127,"임시공휴일"],[20250128,"설 연휴"],[20250129,"설날"],[20250130,"설 연휴"],[20250301,"삼일절"],[20250303,"대체공휴일"],[20250505,"어린이날·부처님오신날"],[20250506,"대체공휴일"],[20250603,"대통령 선거"],[20250606,"현충일"],[20250815,"광복절"],[20251003,"개천절"],[20251005,"추석 연휴"],[20251006,"추석"],[20251007,"추석 연휴"],[20251008,"대체공휴일"],[20251009,"한글날"],[20251225,"성탄절"],[20260101,"신정"],[20260216,"설 연휴"],[20260217,"설날"],[20260218,"설 연휴"],[20260301,"삼일절"],[20260302,"대체공휴일"],[20260501,"노동절"],[20260505,"어린이날"],[20260524,"부처님오신날"],[20260525,"대체공휴일"],[20260603,"지방선거"],[20260606,"현충일"],[20260717,"제헌절"],[20260815,"광복절"],[20260817,"대체공휴일"],[20260924,"추석 연휴"],[20260925,"추석"],[20260926,"추석 연휴"],[20261003,"개천절"],[20261005,"대체공휴일"],[20261009,"한글날"],[20261225,"성탄절"],[20270101,"신정"],[20270206,"설 연휴"],[20270207,"설날"],[20270208,"설 연휴"],[20270209,"대체공휴일"],[20270301,"삼일절"],[20270501,"노동절"],[20270503,"대체공휴일"],[20270505,"어린이날"],[20270513,"부처님오신날"],[20270606,"현충일"],[20270717,"제헌절"],[20270719,"대체공휴일"],[20270815,"광복절"],[20270816,"대체공휴일"],[20270914,"추석 연휴"],[20270915,"추석"],[20270916,"추석 연휴"],[20271003,"개천절"],[20271004,"대체공휴일"],[20271009,"한글날"],[20271011,"대체공휴일"],[20271225,"성탄절"],[20271227,"대체공휴일"],[20280101,"신정"],[20280126,"설 연휴"],[20280127,"설날"],[20280128,"설 연휴"],[20280301,"삼일절"],[20280412,"국회의원 선거"],[20280501,"노동절"],[20280502,"부처님오신날"],[20280505,"어린이날"],[20280606,"현충일"],[20280717,"제헌절"],[20280815,"광복절"],[20281002,"추석 연휴"],[20281003,"추석·개천절"],[20281004,"추석 연휴"],[20281005,"대체공휴일"],[20281009,"한글날"],[20281225,"성탄절"]];
+"use strict";
+/* ══════════════════════════════════════════════════════════════
+   시급 임금명세서 작성기 — 라이브러리 없이 순수 JS
+
+   [달력]   급여 기간을 품는 「온전한 주」 전체(주휴일로 끝나는 7일 단위)를 만든다.
+            기간 밖 날짜는 주휴수당 판정에만 쓰고 돈으로는 세지 않는다.
+            날마다 기본값은 요일별 시간표, 사용자가 누른 날만 ov[날짜] 로 덮어쓴다.
+   [주휴]   주 소정근로시간(시간표 기준, 결근한 날도 약속 시간은 셈) 15시간 이상 + 결근 없음
+            → min(주 소정, 40) ÷ 5 시간. 주휴일이 기간 안에 든 주만 이번 달에 넣는다.
+   [가산]   5명 이상만. 휴일근로(주휴일·공휴일) 8시간까지 1.5 / 넘는 시간 2.0, 연장과 겹치지 않음(대법원 2018.6.21. 전합).
+            연장 = 그날 약속 시간(최대 8)을 넘긴 시간(기간제법 6조 단시간 초과근로 포함) 과
+                   주 40시간 초과 가운데 큰 쪽. 야간 22~06시 0.5 는 기본급 위에 더한다.
+            휴게는 근무 구간 전체에 고르게 나눠 야간 시간을 비례로 줄인다.
+   [유급휴일] 시간표상 근무 요일에 걸린 공휴일(5명 이상)·노동절(모든 사업장) → 그 요일 약속 시간.
+   [공제]   근로소득: 국민연금(기준소득월액 상·하한) · 건강 · 장기요양 · 고용 10원 미만 버림, 소득세 = 간이세액표.
+            사업소득 3.3% · 일용근로(1일 15만원 공제, 6% × 45%, 1,000원 미만 부징수).
+   [문서]   A4 한 장을 캔버스에 mm 단위로 그린다. 미리보기·PNG·PDF(JPEG)·인쇄가 같은 그림을 쓴다.
+   ══════════════════════════════════════════════════════════════ */
+const $ = s => document.querySelector(s);
+const DAY = 86400000;
+const WD = ['일', '월', '화', '수', '목', '금', '토'];
+const FONT = '"Malgun Gothic","맑은 고딕","Apple SD Gothic Neo","Noto Sans KR",sans-serif';
+
+/* ── 공휴일(관공서 공휴일·대체공휴일·선거일) — 2025~2028 ── */
+const HOL = new Map(HOL_LIST);
+HOL.set(20250501, '근로자의 날');   /* 2025년엔 공휴일이 아니었지만 유급휴일 */
+const isLabor = n => /노동절|근로자의 날/.test(n || '');
+
+/* ── 최저임금 · 보험 요율 ── */
+const MINW = { 2025: 10030, 2026: 10320, 2027: 10700 };
+const minWage = y => MINW[y] || MINW[Math.max(...Object.keys(MINW).map(Number).filter(k => k <= y))] || 10030;
+function rates(y, m) {
+  const ym = y * 100 + m;
+  const np = y <= 2025 ? 0.045 : y === 2026 ? 0.0475 : y === 2027 ? 0.05 : 0.0525;
+  const hi = y <= 2025 ? 0.03545 : 0.03595;
+  const ltc = y <= 2025 ? 0.9182 / 7.09 : 0.9448 / 7.19;
+  const lim = ym < 202507 ? [390000, 6170000] : ym < 202607 ? [400000, 6370000] : [410000, 6590000];
+  return { np, hi, ltc, ei: 0.009, npMin: lim[0], npMax: lim[1], ltcGuess: y >= 2027, npGuess: y >= 2028 };
+}
+
+/* ── 날짜 ── */
+const dnOf = (y, m, d) => Math.floor(Date.UTC(y, m - 1, d) / DAY);
+const ymdOf = dn => { const t = new Date(dn * DAY); return { y: t.getUTCFullYear(), m: t.getUTCMonth() + 1, d: t.getUTCDate() }; };
+const dow = dn => ((dn % 7) + 11) % 7;   /* 1970-01-01 은 목요일(4) */
+const keyOf = dn => { const t = ymdOf(dn); return t.y + '-' + String(t.m).padStart(2, '0') + '-' + String(t.d).padStart(2, '0'); };
+const numOf = dn => { const t = ymdOf(dn); return t.y * 10000 + t.m * 100 + t.d; };
+const dnFromKey = k => { const a = String(k || '').split('-').map(Number); return a.length === 3 && a.every(isFinite) && a[0] > 1900 ? dnOf(a[0], a[1], a[2]) : null; };
+const md = dn => { const t = ymdOf(dn); return t.m + '/' + t.d; };
+const lastDay = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
+const holOf = dn => HOL.get(numOf(dn)) || '';
+
+/* ── 시간 ── */
+const toMin = s => { const a = String(s || '0:0').split(':'); return (+a[0] || 0) * 60 + (+a[1] || 0); };
+const fmtT = m => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+function hm(min) {            /* 250 → 4시간 10분 */
+  min = Math.round(min);
+  const h = Math.floor(min / 60), m = min % 60;
+  if (!h && !m) return '0시간';
+  return (h ? h + '시간' : '') + (m ? (h ? ' ' : '') + m + '분' : '');
+}
+function hShort(min) {        /* 달력 칸용 — 4h · 4:30 */
+  min = Math.round(min);
+  const h = Math.floor(min / 60), m = min % 60;
+  return m ? h + ':' + String(m).padStart(2, '0') : h + 'h';
+}
+/* 근무 구간 [s, e) 분 — 퇴근이 출근보다 이르면 다음 날 */
+function span(s, e) { const a = toMin(s); let b = toMin(e); if (b <= a) b += 1440; return [a, b]; }
+function nightIn(a, b) {      /* 22:00~06:00 과 겹친 분 (이틀치까지) */
+  let n = 0;
+  for (const [x, y] of [[-120, 360], [1320, 1800], [2760, 3240]]) n += Math.max(0, Math.min(b, y) - Math.max(a, x));
+  return n;
+}
+function workOf(s, e, brk) {
+  const [a, b] = span(s, e);
+  const tot = b - a, br = Math.min(Math.max(0, brk | 0), tot);
+  const w = tot - br;
+  const nt = nightIn(a, b);
+  return { gross: tot, mins: w, night: tot ? Math.round(nt * w / tot) : 0, next: b > 1440 };
+}
+const won = n => Math.round(n).toLocaleString('ko-KR') + '원';
+const comma = n => Math.round(n).toLocaleString('ko-KR');
+const floor10 = x => Math.floor(Math.round(x * 100) / 100 / 10) * 10;
+const num = s => { const v = String(s).replace(/[^0-9]/g, ''); return v === '' ? 0 : parseInt(v, 10); };
+const escH = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* ── 간이세액표 조회 (월 세액) ── */
+function ganiM(mw, fam) {
+  const n = Math.max(1, Math.min(11, fam)), col = GY[n - 1], last = GX.length - 1;
+  const x = mw / 1000;
+  if (x > GX[last]) {
+    const T = col[last], w = mw;
+    if (w <= 14000000) return T + (w - 10000000) * 0.98 * 0.35 + 25000;
+    if (w <= 28000000) return T + 1397000 + (w - 14000000) * 0.98 * 0.38;
+    if (w <= 30000000) return T + 6610600 + (w - 28000000) * 0.98 * 0.40;
+    if (w <= 45000000) return T + 7394600 + (w - 30000000) * 0.40;
+    if (w <= 87000000) return T + 13394600 + (w - 45000000) * 0.42;
+    return T + 31034600 + (w - 87000000) * 0.45;
+  }
+  if (x <= GX[0]) return 0;
+  let lo = 0, hi = last;
+  while (lo < hi - 1) { const mid = (lo + hi) >> 1; if (GX[mid] <= x) lo = mid; else hi = mid; }
+  const t = (x - GX[lo]) / (GX[hi] - GX[lo]);
+  return col[lo] + (col[hi] - col[lo]) * t;
+}
+function kidCut(k) { return k <= 0 ? 0 : k === 1 ? 12500 : k === 2 ? 29160 : 29160 + (k - 2) * 25000; }
+
+/* ══ 상태 ══ */
+const NOW = new Date();
+function defPeriod() {
+  let y = NOW.getFullYear(), m = NOW.getMonth() + 1;
+  if (NOW.getDate() < 20) { m--; if (m < 1) { m = 12; y--; } }
+  return { y: Math.max(2025, Math.min(2027, y)), m };
+}
+function defPay(y, m) { let py = y, pm = m + 1; if (pm > 12) { pm = 1; py++; } return keyOf(dnOf(py, pm, 10)); }
+function defSched() {
+  const s = [];
+  for (let d = 0; d < 7; d++) s.push({ on: d >= 1 && d <= 5, s: '17:00', e: '21:30', b: 30 });
+  return s;
+}
+function freshState() {
+  const p = defPeriod();
+  return {
+    v: 1, name: '', birth: '', biz: '', boss: '', size: 5, wage: MINW[p.y] || 10320,
+    y: p.y, m: p.m, cut: 'm', ps: '', pe: '', pay: defPay(p.y, p.m), whd: 0,
+    sch: defSched(), ov: {}, wk: {},
+    extras: [], minus: [],
+    ded: 'none', ins: { np: true, hi: true, ei: true, tax: true }, fam: 1, kids: 0, dayEi: true,
+    man: {}, log: true, logType: 'list', cal0: 1, holWork: true, rcpt: true, rc: null, pyck: true, bsig: false, bs: null
+  };
+}
+let S = freshState();
+const LS = 'hourly_payslip.state', LSS = 'hourly_payslip.staff';
+function loadState() {
+  try {
+    const o = JSON.parse(localStorage.getItem(LS) || 'null');
+    if (o && o.v === 1) S = Object.assign(freshState(), o);
+  } catch (e) { /* 새로 시작 */ }
+}
+let saveT = 0;
+function saveState() {
+  if (SHARED) return;              /* 링크로 받은 명세서는 이 브라우저 기록을 덮지 않는다 */
+  clearTimeout(saveT);
+  S.savedAt = Date.now();
+  saveT = setTimeout(() => { try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) { /* 저장 못 해도 동작 */ } }, 250);
+}
+function staffList() { try { return JSON.parse(localStorage.getItem(LSS) || '[]') || []; } catch (e) { return []; } }
+function staffSave(list) { try { localStorage.setItem(LSS, JSON.stringify(list)); return true; } catch (e) { return false; } }
+const STAFF_KEYS = ['name', 'birth', 'size', 'wage', 'whd', 'sch', 'extras', 'minus', 'ded', 'ins', 'fam', 'kids', 'dayEi', 'log'];
+
+/* ══ 계산 ══ */
+function period() {
+  let ps, pe;
+  if (S.cut === 'c') { ps = dnFromKey(S.ps); pe = dnFromKey(S.pe); }
+  if (ps == null || pe == null || pe < ps || pe - ps > 62) { ps = dnOf(S.y, S.m, 1); pe = dnOf(S.y, S.m, lastDay(S.y, S.m)); }
+  return { ps, pe };
+}
+function schedOf(d) { const c = S.sch[d]; return c && c.on ? c : null; }
+function dayModel(dn, ps, pe) {
+  const w = dow(dn), sc = schedOf(w), k = keyOf(dn), o = S.ov[k];
+  const hol = holOf(dn);
+  const day = { dn, key: k, dow: w, inP: dn >= ps && dn <= pe, hol, labor: isLabor(hol), whd: w === S.whd, sched: !!sc,
+    st: sc ? 'work' : 'none', s: sc ? sc.s : '09:00', e: sc ? sc.e : '18:00', b: sc ? sc.b : 0, swap: false, chg: !!o };
+  day.plan = sc ? workOf(sc.s, sc.e, sc.b).mins : 0;          /* 그 요일 약속 시간 */
+  if (sc && hol && !S.holWork) day.st = 'off';                  /* 공휴일은 쉬는 날로 채운다 */
+  if (o) { day.st = o.st; if (o.s) day.s = o.s; if (o.e) day.e = o.e; if (o.b != null) day.b = o.b; day.swap = !!o.swap; }
+  day.mins = 0; day.night = 0; day.next = false;
+  if (day.st === 'work' || day.st === 'leave') { const r = workOf(day.s, day.e, day.b); day.mins = r.mins; day.night = r.night; day.next = r.next; }
+  /* 그날의 소정근로시간 — 쉬기로 한 날은 0, 바꾼 날은 일한 만큼 */
+  day.soj = day.st === 'off' || day.st === 'none' ? 0 : day.plan;
+  if (day.st === 'off' && day.sched && hol) day.soj = day.plan;   /* 공휴일에 쉰 것은 약속 시간을 줄이지 않는다 */
+  if (day.st === 'work' && day.swap) day.soj = day.mins;
+  if (day.st === 'work' && !day.sched) day.soj = day.swap ? day.mins : 0;
+  return day;
+}
+function calc() {
+  const { ps, pe } = period();
+  const five = S.size === 5, wage = Math.max(0, S.wage | 0);
+  const wsd = (S.whd + 1) % 7;
+  const g0 = ps - ((dow(ps) - wsd + 7) % 7);
+  const g1 = pe + ((S.whd - dow(pe) + 7) % 7);
+  const days = [];
+  for (let dn = g0; dn <= g1; dn++) days.push(dayModel(dn, ps, pe));
+  /* 가산 구분 */
+  for (const d of days) {
+    d.ot = 0; d.holW = 0; d.paidHol = 0;
+    const holiday = d.whd || (!!d.hol);
+    if (d.st === 'work' && five && holiday) d.holW = d.mins;
+    else if (d.st === 'work' && five) d.ot = Math.max(0, d.mins - Math.min(d.soj, 480));
+    if (d.sched && !d.whd && ((five && d.hol) || d.labor)) d.paidHol = d.plan;
+    if (!five) d.night = d.st === 'work' ? d.night : 0;
+  }
+  const weeks = [];
+  for (let i = 0; i < days.length; i += 7) {
+    const ds = days.slice(i, i + 7), end = ds[6].dn;
+    let so = 0, abs = false, hours = 0;
+    for (const d of ds) {
+      so += d.soj;
+      if (d.st === 'abs' && !d.hol) abs = true;
+      if (d.st === 'work') hours += d.mins;
+    }
+    /* 주 40시간 넘긴 시간 — 하루 단위로 이미 센 연장보다 크면 모자란 만큼 뒤쪽 날에 붙인다 */
+    if (five) {
+      const plain = ds.filter(d => d.st === 'work' && !d.holW);
+      const wkOt = Math.max(0, plain.reduce((a, d) => a + d.mins, 0) - 2400);
+      let extra = wkOt - plain.reduce((a, d) => a + d.ot, 0);
+      for (let j = plain.length - 1; j >= 0 && extra > 0; j--) {
+        const room = plain[j].mins - plain[j].ot, t = Math.min(room, extra);
+        plain[j].ot += t; extra -= t;
+      }
+    }
+    const auto = so >= 900 && !abs ? Math.round(Math.min(so, 2400) / 5) : 0;
+    const f = S.wk[keyOf(end)];
+    let hol = auto;
+    if (f === 'off') hol = 0;
+    else if (f === 'on' && !auto) hol = Math.round(Math.min(Math.max(so, 900), 2400) / 5);
+    const why = so < 900 ? '약속 시간 ' + hm(so) + ' · 15시간 미만' : abs ? '결근한 날이 있음' : '약속 ' + hm(so) + ' · 개근';
+    weeks.push({ start: ds[0].dn, end, so, abs, auto, hol, forced: f || '', why, hours, inP: end >= ps && end <= pe, days: ds });
+  }
+  /* 기간 안 합계 */
+  const P = days.filter(d => d.inP);
+  const sum = f => P.reduce((a, d) => a + f(d), 0);
+  const workMin = sum(d => d.st === 'work' ? d.mins : 0);
+  const otMin = sum(d => d.ot), holMin = sum(d => d.holW);
+  const hol8 = sum(d => Math.min(d.holW, 480)), holOver = holMin - hol8;
+  const nightMin = five ? sum(d => d.st === 'work' ? d.night : 0) : 0;
+  const leaveMin = sum(d => d.st === 'leave' ? d.mins : 0);
+  const paidHolDays = P.filter(d => d.paidHol > 0);
+  const paidHolMin = paidHolDays.reduce((a, d) => a + d.paidHol, 0);
+  const weekIn = weeks.filter(w => w.inP);
+  const juMin = weekIn.reduce((a, w) => a + w.hol, 0);
+  const workDays = P.filter(d => d.st === 'work' && d.mins > 0).length;
+  const basicMin = workMin - otMin - holMin;
+  const W = comma(wage) + '원';
+  const items = [];
+  const add = (k, n, a, how) => { if (a > 0 || k === 'basic') items.push({ k, n, a: Math.round(a), how, tf: false }); };
+  add('basic', '기본급', wage * basicMin / 60, W + ' × ' + hm(basicMin) + ' (' + workDays + '일' + (otMin || holMin ? ', 연장·휴일 시간 제외' : '') + ')');
+  if (juMin) {
+    const grp = {};
+    weekIn.filter(w => w.hol).forEach(w => { grp[w.hol] = (grp[w.hol] || 0) + 1; });
+    const g = Object.keys(grp).map(Number).sort((a, b) => b - a).map(h => grp[h] + '주 × ' + hm(h)).join(' + ');
+    add('ju', '주휴수당', wage * juMin / 60, W + ' × ' + hm(juMin) + ' (' + g + ')');
+  }
+  if (otMin) add('ot', '연장근로수당', wage * 1.5 * otMin / 60, W + ' × 1.5 × ' + hm(otMin));
+  if (nightMin) add('night', '야간근로수당', wage * 0.5 * nightMin / 60, W + ' × 0.5 × ' + hm(nightMin) + ' (22시~06시)');
+  if (holMin) add('holw', '휴일근로수당', wage * (1.5 * hol8 + 2 * holOver) / 60,
+    W + ' × 1.5 × ' + hm(hol8) + (holOver ? ' + ' + W + ' × 2 × ' + hm(holOver) : ''));
+  if (paidHolMin) {
+    const names = paidHolDays.map(d => md(d.dn) + ' ' + d.hol.replace(' 연휴', '').replace('대체공휴일', '대체')).join(', ');
+    add('phol', '유급휴일수당', wage * paidHolMin / 60, W + ' × ' + hm(paidHolMin) + ' (' + names + ')');
+  }
+  if (leaveMin) {
+    const ld = P.filter(d => d.st === 'leave').map(d => md(d.dn)).join(', ');
+    add('leave', '연차휴가수당', wage * leaveMin / 60, W + ' × ' + hm(leaveMin) + ' (' + ld + ' 사용)');
+  }
+  let tfSum = 0;
+  for (const x of S.extras) {
+    const a = Math.max(0, x.a | 0);
+    if (!a) continue;
+    let tf = 0;
+    if (x.tf) tf = /식대|식비|밥값/.test(x.n) ? Math.min(a, 200000) : a;
+    tfSum += tf;
+    items.push({ k: 'x', n: (x.n || '기타 수당').slice(0, 14), a, how: x.tf ? (tf < a ? '비과세 ' + comma(tf) + '원 (월 20만원 한도)' : '비과세') : '', tf: !!x.tf });
+  }
+  const pay = items.reduce((a, it) => a + it.a, 0);
+  const taxable = Math.max(0, pay - tfSum);
+  /* 공제 */
+  const pe_ = ymdOf(pe), R = rates(pe_.y, pe_.m);
+  const deds = [];
+  const dd = (k, n, auto, how) => {
+    const man = S.man[k];
+    const a = man != null && man !== '' && isFinite(man) ? Math.max(0, +man) : auto;
+    deds.push({ k, n, a: Math.round(a), auto: Math.round(auto), how, man: man != null && man !== '' });
+  };
+  if (S.ded === 'ins') {
+    if (S.ins.np) {
+      const base = Math.min(R.npMax, Math.max(R.npMin, Math.floor(taxable / 1000) * 1000));
+      dd('np', '국민연금', floor10(base * R.np), '기준소득월액 ' + comma(base) + '원 × ' + (R.np * 100).toFixed(2).replace(/0$/, '') + '%');
+    }
+    if (S.ins.hi) {
+      const h = floor10(taxable * R.hi);
+      dd('hi', '건강보험', h, '과세 급여 ' + comma(taxable) + '원 × ' + (R.hi * 100).toFixed(3) + '%');
+      const hiNow = deds[deds.length - 1].a;
+      dd('ltc', '장기요양보험', floor10(hiNow * R.ltc), '건강보험료 × ' + (R.ltc * 100).toFixed(2) + '%' + (R.ltcGuess ? ' (2027년 요율 미정·2026년 비율)' : ''));
+    }
+    if (S.ins.ei) dd('ei', '고용보험', floor10(taxable * R.ei), '과세 급여 ' + comma(taxable) + '원 × 0.9%');
+    if (S.ins.tax) {
+      const t = Math.max(0, floor10(ganiM(taxable, S.fam) - kidCut(S.kids)));
+      dd('tax', '소득세', t, '간이세액표 · 과세 급여 ' + comma(taxable) + '원 · 가족 ' + S.fam + '명' + (S.kids ? ' · 자녀 ' + S.kids + '명' : ''));
+      const tNow = deds[deds.length - 1].a;
+      dd('ltax', '지방소득세', floor10(tNow * 0.1), '소득세 × 10%');
+    }
+  } else if (S.ded === 'biz') {
+    dd('tax', '소득세', floor10(pay * 0.03), '지급액 ' + comma(pay) + '원 × 3%');
+    const tNow = deds[deds.length - 1].a;
+    dd('ltax', '지방소득세', floor10(tNow * 0.1), '소득세 × 10%');
+  } else if (S.ded === 'day') {
+    const nd = Math.max(1, workDays), avg = taxable / nd;
+    let t = Math.floor(Math.max(0, avg - 150000) * 0.06 * 0.45) * nd;
+    const small = t > 0 && t < 1000;
+    if (t < 1000) t = 0;
+    dd('tax', '소득세', t, '일급 ' + comma(avg) + '원 − 15만원 × 6% × 45% × ' + nd + '일' + (small ? ' (1,000원 미만 부징수)' : avg <= 150000 ? ' (일급 15만원 이하)' : ''));
+    const tNow = deds[deds.length - 1].a;
+    dd('ltax', '지방소득세', Math.floor(tNow * 0.1), '소득세 × 10%');
+    if (S.dayEi) dd('ei', '고용보험', floor10(taxable * R.ei), '과세 급여 ' + comma(taxable) + '원 × 0.9%');
+  }
+  for (const x of S.minus) {
+    const a = Math.max(0, x.a | 0);
+    if (a) deds.push({ k: 'm', n: (x.n || '기타 공제').slice(0, 14), a, how: '', man: false, user: true });
+  }
+  const dedSum = deds.reduce((a, d) => a + d.a, 0);
+  const planMonth = P.reduce((a, d) => a + d.soj, 0);
+  return { ps, pe, days, weeks, P, five, wage, items, deds, pay, taxable, tfSum, dedSum, net: pay - dedSum,
+    workMin, otMin, nightMin, holMin, hol8, holOver, juMin, leaveMin, paidHolMin, workDays, planMonth, R, basicMin };
+}
+
+/* ══ 점검 ══ */
+function checks(C) {
+  const out = [];
+  const py = ymdOf(C.pe).y, mw = minWage(py);
+  if (C.wage < mw) out.push(['bad', '시급 ' + comma(C.wage) + '원은 ' + py + '년 최저시급 ' + comma(mw) + '원보다 낮습니다', '최저임금법 위반 · 수습 감액(90%)은 1년 이상 계약·단순노무가 아닌 일에만 3개월까지']);
+  else out.push(['ok', py + '년 최저시급 ' + comma(mw) + '원 이상']);
+  if (py === 2026 && C.wage < MINW[2027]) out.push(['info', '2027년 1월부터 최저시급은 ' + comma(MINW[2027]) + '원입니다', '내년 1월분부터 시급을 올려야 합니다']);
+  /* 휴게 */
+  const bad = [];
+  for (let d = 0; d < 7; d++) {
+    const c = S.sch[d]; if (!c || !c.on) continue;
+    const r = workOf(c.s, c.e, 0), br = c.b | 0, w = r.gross - br;
+    if ((w >= 480 && br < 60) || (w >= 240 && br < 30)) bad.push(WD[d]);
+  }
+  if (bad.length) out.push(['warn', bad.join('·') + '요일 휴게시간이 모자랍니다', '4시간 일하면 30분, 8시간이면 1시간 이상 쉬게 해야 합니다(근로기준법 제54조, 모든 사업장)']);
+  const wks = C.weeks.filter(w => w.inP);
+  const miss = wks.filter(w => !w.hol && w.so >= 900);
+  if (C.juMin) out.push(['ok', '주휴수당 ' + wks.filter(w => w.hol).length + '주 · ' + hm(C.juMin)]);
+  if (miss.length) out.push(['warn', '주휴수당이 빠진 주가 ' + miss.length + '주 있습니다', miss.map(w => md(w.start) + '~' + md(w.end) + ' ' + (w.forced === 'off' ? '직접 뺌' : w.why)).join(' · ')]);
+  if (!C.juMin && !miss.length && wks.length) out.push(['info', '주 15시간 미만이라 주휴수당이 없습니다', '초단시간 근로자는 주휴·연차·퇴직금이 적용되지 않습니다']);
+  if (S.sch[S.whd] && S.sch[S.whd].on) out.push(['warn', '주휴일(' + WD[S.whd] + '요일)에 근무가 잡혀 있습니다', '주휴일을 쉬는 요일로 바꾸세요. 그대로 두면 그날 근무는 휴일근로로 셉니다']);
+  if (C.five) {
+    const over = C.weeks.filter(w => w.hours > 3120);
+    if (over.length) out.push(['bad', '주 52시간을 넘긴 주가 있습니다', over.map(w => md(w.start) + '~' + md(w.end) + ' ' + hm(w.hours)).join(' · ')]);
+    if (C.otMin || C.nightMin || C.holMin) out.push(['ok', '가산수당 반영 · 연장 ' + hm(C.otMin) + ' · 야간 ' + hm(C.nightMin) + ' · 휴일 ' + hm(C.holMin)]);
+  } else if (C.P.some(d => d.st === 'work' && (d.night || d.mins > 480 || d.hol || d.whd))) {
+    out.push(['info', '5명 미만이라 야간·연장·휴일 가산 없이 시급 그대로 셉니다']);
+  }
+  if (C.paidHolMin) out.push(['ok', '공휴일 유급휴일수당 ' + hm(C.paidHolMin), C.five ? '근무 요일에 걸린 공휴일은 쉬어도 유급입니다' : '노동절은 사업장 규모와 상관없이 유급휴일입니다']);
+  else if (!C.five && C.P.some(d => d.hol && d.sched && !d.labor)) out.push(['info', '5명 미만은 공휴일이 유급휴일이 아닙니다', '노동절(5월 1일)만 유급입니다']);
+  const mh = C.planMonth;
+  if (S.ded === 'ins' && mh < 3600 && (S.ins.np || S.ins.hi)) out.push(['warn', '이번 달 약속 시간 ' + hm(mh) + ' — 월 60시간 미만', '국민연금·건강보험 가입 제외 대상일 수 있습니다(고용보험도 3개월 미만이면 제외). 가입 신고를 했는지 확인하세요']);
+  if (S.ded === 'ins' && C.R.ltcGuess && S.ins.hi) out.push(['info', '2027년 장기요양보험료율은 아직 정해지지 않았습니다', '2026년 비율로 어림했습니다. 고지 금액이 나오면 칸에 직접 적으세요']);
+  if (S.ded === 'biz') out.push(['warn', '3.3%는 사업소득 원천징수 방식입니다', '시간·장소를 정해 일을 시키는 알바는 근로자라 원칙은 4대보험·근로소득입니다']);
+  if (C.deds.some(d => d.man)) out.push(['info', '직접 고친 공제액이 있습니다', '노란 칸 · 「자동」을 누르면 계산값으로 돌아갑니다']);
+  if (S.pyck && S.bsig) {
+    const bs = bsOf(C);
+    if (bs) out.push(['ok', '사업주 서명 · ' + fmtAt(bs.at)]);
+    else if (S.bs) out.push(['warn', '사업주 서명 뒤 명세서 내용이 바뀌어 서명이 빠졌습니다', '바뀐 명세서로 다시 서명하세요']);
+    else out.push(['info', '사업주 서명 전', '아래 서명판에서 「사업주 서명」을 고르고 서명하세요']);
+  }
+  if (S.rcpt) {
+    const rc = sigOf(C);
+    if (rc) out.push(['ok', '수령 확인 서명 · ' + fmtAt(rc.at)]);
+    else if (S.rc) out.push(['warn', '서명한 뒤 명세서 내용이 바뀌어 서명이 빠졌습니다', '바뀐 명세서로 다시 서명을 받으세요']);
+    else out.push(['info', '근로자 수령 확인 서명 전', '아래 서명판에서 받거나 링크를 보내 근로자가 서명하게 하세요']);
+  }
+  if (!S.name.trim()) out.push(['warn', '근로자 이름이 비어 있습니다', '이름·생년월일(또는 사원번호)은 명세서 필수 기재사항입니다']);
+  return out;
+}
+
+/* ══ 명세서 그리기 (mm 좌표) ══ */
+const PW = 210, PH = 297, MG = 15;
+const PT = 0.3528;   /* 1pt = 0.3528mm */
+function fnt(ctx, pt, w) { ctx.font = (w || 400) + ' ' + (pt * PT).toFixed(3) + 'px ' + FONT; }
+function wrap(ctx, text, maxW) {
+  const out = [];
+  for (const para of String(text).split('\n')) {
+    let line = '';
+    const tokens = para.split(/(\s+)/);
+    for (const tk of tokens) {
+      const t = line + tk;
+      if (ctx.measureText(t).width <= maxW || !line) {
+        if (ctx.measureText(t).width > maxW && !line) {   /* 한 낱말이 너무 길면 글자 단위로 */
+          let cur = '';
+          for (const ch of tk) { if (ctx.measureText(cur + ch).width > maxW && cur) { out.push(cur); cur = ''; } cur += ch; }
+          line = cur;
+        } else line = t;
+      } else { out.push(line.trimEnd()); line = tk.trimStart(); }
+    }
+    out.push(line.trimEnd());
+  }
+  return out;
+}
+function docModel(C) {
+  const p0 = ymdOf(C.ps), p1 = ymdOf(C.pe);
+  const monthLabel = (S.cut === 'm' ? p0.y + '년 ' + p0.m + '월분' : p1.y + '년 ' + p1.m + '월분');
+  const perLabel = p0.y + '.' + p0.m + '.' + p0.d + ' ~ ' + (p1.y !== p0.y ? p1.y + '.' : '') + p1.m + '.' + p1.d;
+  const payDn = dnFromKey(S.pay);
+  const payLabel = payDn != null ? (t => t.y + '년 ' + t.m + '월 ' + t.d + '일')(ymdOf(payDn)) : '';
+  const log = C.P.filter(d => d.st === 'work' || d.st === 'leave' || d.st === 'abs' || d.paidHol > 0);
+  return { monthLabel, perLabel, payLabel, log };
+}
+/* 한 쪽씩 그린다 — 반환: 필요한 쪽 수. draw=false 면 재기만 */
+function paint(ctx, C, D, pageNo, s, dense) {
+  const g = dense ? 0.82 : 1;     /* 촘촘 모드 — 근무 기록까지 한 장에 넣으려고 표 줄 간격을 줄인다 */
+  const out = { pages: 1 };
+  if (ctx) {
+    ctx.save();
+    ctx.setTransform(s, 0, 0, s, 0, 0);
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, PW, PH);
+    ctx.textBaseline = 'alphabetic';
+  }
+  const ink = '#111', sub = '#555', line = '#6b6b6b', thin = '#bdbdbd', headBg = '#eef4f2', acc = '#0f5f58';
+  const X0 = MG, X1 = PW - MG, W = X1 - X0;
+  const txt = (t, x, y, pt, w, col, align) => {
+    if (!ctx) return;
+    fnt(ctx, pt, w); ctx.fillStyle = col || ink; ctx.textAlign = align || 'left'; ctx.fillText(t, x, y);
+  };
+  const rect = (x, y, w, h, fill, stroke, lw) => {
+    if (!ctx) return;
+    if (fill) { ctx.fillStyle = fill; ctx.fillRect(x, y, w, h); }
+    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 0.2; ctx.strokeRect(x, y, w, h); }
+  };
+  const hline = (x, y, w, col, lw) => { if (!ctx) return; ctx.strokeStyle = col; ctx.lineWidth = lw || 0.2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.stroke(); };
+  const mctx = ctx || MCTX;
+  let y = MG;
+  const page1 = () => {
+    /* 제목 */
+    txt('임 금 명 세 서', PW / 2, y + 9, 22, 800, ink, 'center');
+    y += dense ? 13.5 : 15;
+    txt(D.monthLabel + '  ·  근로기간 ' + D.perLabel, PW / 2, y, 10, 600, sub, 'center');
+    y += 6;
+    /* 기본 정보 */
+    const info = [
+      ['성명', S.name.trim() || '—', '생년월일(사원번호)', S.birth.trim() || '—'],
+      ['사업장', S.biz.trim() || '—', '임금지급일', D.payLabel || '—'],
+      ['시급', comma(C.wage) + '원', '근로일수', C.workDays + '일']
+    ];
+    const cw = [26, W / 2 - 26, 34, W / 2 - 34], rh = dense ? 6.4 : 7.4;
+    info.forEach((r, i) => {
+      let x = X0;
+      r.forEach((c, j) => {
+        rect(x, y, cw[j], rh, j % 2 === 0 ? headBg : null, line, 0.2);
+        txt(c, j % 2 === 0 ? x + cw[j] / 2 : x + 3, y + rh * 0.7, j % 2 === 0 ? 9 : 10, j % 2 === 0 ? 700 : 600, j % 2 === 0 ? '#333' : ink, j % 2 === 0 ? 'center' : 'left');
+        x += cw[j];
+      });
+      y += rh;
+    });
+    y += dense ? 3.5 : 5;
+    /* 근로시간 요약 */
+    const hs = [['총 근로시간', hm(C.workMin)], ['연장', hm(C.otMin)], ['야간', hm(C.nightMin)], ['휴일', hm(C.holMin)], ['주휴', hm(C.juMin)], ['유급휴일', hm(C.paidHolMin + C.leaveMin)]];
+    const hw = W / hs.length;
+    hs.forEach((h, i) => {
+      rect(X0 + i * hw, y, hw, 6.5, headBg, line, 0.2);
+      rect(X0 + i * hw, y + 6.5, hw, 7.5, null, line, 0.2);
+      txt(h[0], X0 + i * hw + hw / 2, y + 4.6, 8.5, 700, '#333', 'center');
+      txt(h[1], X0 + i * hw + hw / 2, y + 11.8, 9.5, 700, ink, 'center');
+    });
+    y += 14;
+    if (!C.five) { txt('상시 근로자 5명 미만 사업장 — 연장·야간·휴일 가산수당 적용 제외(근로기준법 시행령 별표 1)', X0, y + 4.2, 8, 500, sub); y += 5.5; }
+    y += dense ? 2.5 : 4;
+    /* 표 — 지급·공제 */
+    const table = (title, rows, totalLabel, total, empty) => {
+      const c1 = 32, c3 = 30, c2 = W - c1 - c3;
+      txt(title, X0, y + 4.2, 11, 800, ink);
+      y += 6.5;
+      const hh = 7 * g;
+      rect(X0, y, W, hh, headBg, line, 0.25);
+      txt('항목', X0 + c1 / 2, y + hh * 0.7, 9, 700, '#333', 'center');
+      txt('계산방법', X0 + c1 + c2 / 2, y + hh * 0.7, 9, 700, '#333', 'center');
+      txt('금액(원)', X0 + c1 + c2 + c3 / 2, y + hh * 0.7, 9, 700, '#333', 'center');
+      y += hh;
+      if (!rows.length) rows = [{ n: empty, a: null, how: '' }];
+      for (const r of rows) {
+        fnt(mctx, 8.8, 500);
+        const lines = r.how ? wrap(mctx, r.how, c2 - 5) : [''];
+        const h = Math.max(7 * g, (dense ? 2 : 3) + lines.length * 4.1);
+        if (ctx) { ctx.strokeStyle = thin; ctx.lineWidth = 0.15; }
+        rect(X0, y, W, h, null, null);
+        hline(X0, y + h, W, thin, 0.15);
+        txt(r.n, X0 + 3, y + h / 2 + 1.4, 9.8, 700, ink);
+        lines.forEach((ln, k) => txt(ln, X0 + c1 + 2.5, y + (h - lines.length * 4.1) / 2 + 3.2 + k * 4.1, 8.8, 500, '#333'));
+        if (r.a != null) txt(comma(r.a), X1 - 3, y + h / 2 + 1.5, 10.5, 700, ink, 'right');
+        y += h;
+      }
+      const th = 8 * g;
+      rect(X0, y, W, th, headBg, line, 0.3);
+      txt(totalLabel, X0 + 3, y + th * 0.7, 10, 800, ink);
+      txt(comma(total), X1 - 3, y + th * 0.7, 11, 800, ink, 'right');
+      if (ctx) { ctx.strokeStyle = line; ctx.lineWidth = 0.3; ctx.beginPath(); ctx.moveTo(X0, y - 0); ctx.lineTo(X0, y); ctx.stroke(); }
+      y += th;
+    };
+    const top = y;
+    table('지급 내역', C.items.map(it => ({ n: it.n, a: it.a, how: it.how })), '지급액 계 (임금 총액)', C.pay, '지급 항목 없음');
+    if (ctx) { ctx.strokeStyle = line; ctx.lineWidth = 0.25; ctx.strokeRect(X0, top + 6.5, W, y - top - 6.5); }
+    y += dense ? 3 : 5;
+    const top2 = y;
+    table('공제 내역', C.deds.map(d => ({ n: d.n, a: d.a, how: d.how + (d.man ? (d.how ? ' · ' : '') + '직접 입력' : '') })), '공제액 계', C.dedSum, '공제 없음');
+    if (ctx) { ctx.strokeStyle = line; ctx.lineWidth = 0.25; ctx.strokeRect(X0, top2 + 6.5, W, y - top2 - 6.5); }
+    y += dense ? 3 : 5;
+    /* 실수령액 */
+    const nh = dense ? 11 : 13, nd = dense ? 1 : 0;
+    rect(X0, y, W, nh, '#e3f1ee', acc, 0.5);
+    txt('실수령액', X0 + 5, y + 8.4 - nd, 12, 800, acc);
+    txt('지급액 ' + comma(C.pay) + ' − 공제액 ' + comma(C.dedSum), X0 + 30, y + 8.2 - nd, 8.8, 600, sub);
+    txt(comma(C.net) + '원', X1 - 5, y + 9 - nd, 16, 900, acc, 'right');
+    y += nh + (dense ? 2.5 : 3);
+    const who = (S.biz.trim() || '사업장') + (S.boss.trim() ? '   대표 ' + S.boss.trim() : '');
+    /* 지급 확인(사업주) · 수령 확인(근로자) — 켠 칸만. 하나면 폭 전체를 쓴다 */
+    const kinds = (S.pyck ? ['b'] : []).concat(S.rcpt ? ['w'] : []);
+    if (!kinds.length) return;
+    const bw = kinds.length === 2 ? (W - 4) / 2 : W, bh = 21, by = y - 1.5, blank = '        년      월      일';
+    const fit = (t, x, yy, pt, w, col, align, maxW) => {   /* 넘치면 글자를 줄인다 */
+      let p = pt; fnt(mctx, p, w);
+      while (p > 6.5 && mctx.measureText(t).width > maxW) { p -= 0.3; fnt(mctx, p, w); }
+      txt(t, x, yy, p, w, col, align);
+    };
+    const RC = sigOf(C), BS = bsOf(C);
+    kinds.forEach((kind, i) => {
+      const k = kind === 'w' ? 1 : 0, bx = X0 + i * (bw + 4);
+      rect(bx, by, bw, 6, headBg, null);
+      rect(bx, by, bw, bh, null, line, 0.25);
+      hline(bx, by + 6, bw, line, 0.2);
+      txt(k ? '수령 확인 (근로자)' : '지급 확인 (사업주)', bx + 3, by + 4.3, 8.4, 800, '#333');
+      fit(k ? '위 임금을 받았고 명세서 내용을 확인했습니다.' : '위와 같이 ' + D.monthLabel + ' 임금을 지급합니다.', bx + 3, by + 10.4, 8.6, 600, ink, 'left', bw - 6);
+      txt((k ? '확인일  ' : '지급일  ') + (k ? (RC ? fmtAt(RC.at) : blank) : (D.payLabel || blank)), bx + 3, by + 15.1, 8.4, 500, '#333');
+      if (!k && S.bsig) {                     /* 사업주 손 서명 — (인) 자리에 */
+        fit(who, bx + bw - 31, by + 19.3, 9.4, 700, ink, 'right', bw - 36);
+        if (BS && ctx) drawSig(ctx, BS.pts, bx + bw - 29, by + 7.8, 26, 12.4, '#1e3a8a', 0.42);
+        else txt('(서명)', bx + bw - 5, by + 19.3, 8.6, 500, '#9a9a9a', 'right');
+      } else if (!k) fit(who + '   (인)', bx + bw - 3, by + 19.3, 9.4, 700, ink, 'right', bw - 6);
+      else {
+        fit('근로자  ' + (S.name.trim() || '            '), bx + bw - 31, by + 19.3, 9.4, 700, ink, 'right', bw - 36);
+        if (RC && ctx) drawSig(ctx, RC.pts, bx + bw - 29, by + 7.8, 26, 12.4, '#1e3a8a', 0.42);
+        else txt('(서명)', bx + bw - 5, by + 19.3, 8.6, 500, '#9a9a9a', 'right');
+      }
+    });
+    y += bh + 1.5;
+  };
+  const note = '이 명세서는 근로기준법 제48조 제2항·같은 법 시행령 제27조의2의 기재사항을 담았습니다. 금액은 원 단위 반올림, 보험료는 10원 미만 버림.';
+  /* 근무 기록표 — 2단 */
+  let RH = 4.3;
+  const logH = n => 7 + 6 + Math.ceil(n / 2) * RH + 2;
+  const drawLog = (list, title) => {
+    txt(title, X0, y + 4.2, 11, 800, ink);
+    fnt(mctx, 11, 800);
+    txt('휴게시간을 뺀 근무시간 · 흐린 줄은 결근·유급휴일', X0 + mctx.measureText(title).width + 3, y + 4.1, 8, 500, sub);
+    y += 7;
+    const half = Math.ceil(list.length / 2), cw2 = (W - 6) / 2;
+    const cols = [['날짜', 17], ['출근~퇴근', 25], ['휴게', 12], ['근무', 17], ['비고', cw2 - 71]];
+    for (let side = 0; side < 2; side++) {
+      const x0 = X0 + side * (cw2 + 6);
+      let yy = y;
+      rect(x0, yy, cw2, 6, headBg, line, 0.2);
+      let cx = x0;
+      for (const c of cols) { txt(c[0], cx + c[1] / 2, yy + 4.2, 7.8, 700, '#333', 'center'); cx += c[1]; }
+      yy += 6;
+      const part = list.slice(side * half, side * half + half);
+      for (const d of part) {
+        const t = ymdOf(d.dn);
+        const col = d.st === 'work' || d.st === 'leave' ? ink : '#888';
+        const red = d.hol || d.dow === 0;
+        cx = x0;
+        const cells = [
+          t.m + '/' + t.d + '(' + WD[d.dow] + ')',
+          d.st === 'work' || d.st === 'leave' ? d.s + '~' + d.e + (d.next ? '+' : '') : '—',
+          d.st === 'work' ? (d.b ? d.b + '분' : '—') : '',
+          d.st === 'work' ? hm(d.mins) : d.st === 'leave' ? hm(d.mins) : '',
+          d.st === 'abs' ? '결근' : d.st === 'leave' ? '연차' : d.hol ? d.hol.replace(' 연휴', '').slice(0, 6) + (d.paidHol ? '·유급' : '') : d.ot ? '연장 ' + hShort(d.ot) : d.swap ? '근무일 바꿈' : ''
+        ];
+        cells.forEach((v, k) => {
+          txt(v, k === 4 ? cx + 1.5 : cx + cols[k][1] / 2, yy + 3.1, k === 3 ? 7.8 : 7.6, k === 3 ? 700 : 500, k === 0 && red ? '#c62828' : k === 4 && d.st === 'abs' ? '#c62828' : col, k === 4 ? 'left' : 'center');
+          cx += cols[k][1];
+        });
+        hline(x0, yy + RH, cw2, thin, 0.12);
+        yy += RH;
+      }
+      if (ctx) { ctx.strokeStyle = line; ctx.lineWidth = 0.2; ctx.strokeRect(x0, y, cw2, 6 + part.length * RH); }
+    }
+    y += 6 + half * RH + 4;
+  };
+  /* 근무 기록 — 달력형(시작 요일은 화면 달력과 같게) */
+  let CH = 10.5;
+  const calDays = () => {
+    const a = C.ps - ((dow(C.ps) - S.cal0 + 7) % 7), b = C.pe + ((S.cal0 + 6 - dow(C.pe) + 7) % 7);
+    const map = new Map(C.days.map(d => [d.dn, d]));
+    const out = [];
+    for (let dn = a; dn <= b; dn++) out.push(map.get(dn) || dayModel(dn, C.ps, C.pe));
+    return out;
+  };
+  const calH = () => 7 + 5.5 + Math.ceil(calDays().length / 7) * CH + 3;
+  const drawCal = (title) => {
+    txt(title, X0, y + 4.2, 11, 800, ink);
+    fnt(mctx, 11, 800);
+    txt('칸마다 휴게를 뺀 근무시간 · 아래 줄은 출근~퇴근', X0 + mctx.measureText(title).width + 3, y + 4.1, 8, 500, sub);
+    y += 7;
+    const list = calDays(), cw = W / 7;
+    rect(X0, y, W, 5.5, headBg, line, 0.2);
+    for (let i = 0; i < 7; i++) {
+      const d = (S.cal0 + i) % 7;
+      txt(WD[d] + (d === S.whd ? '(주휴)' : ''), X0 + i * cw + cw / 2, y + 4, 7.8, 700, d === 0 ? '#c62828' : d === 6 ? '#1d4ed8' : '#333', 'center');
+    }
+    y += 5.5;
+    list.forEach((d, i) => {
+      const cx = X0 + (i % 7) * cw, cy = y + Math.floor(i / 7) * CH, t = ymdOf(d.dn);
+      if (!d.inP) rect(cx, cy, cw, CH, '#f3f3f3', null);
+      else if (d.st === 'abs') rect(cx, cy, cw, CH, '#fdecec', null);
+      else if (d.st === 'work' || d.st === 'leave') rect(cx, cy, cw, CH, '#eef7f4', null);
+      if (ctx) { ctx.strokeStyle = thin; ctx.lineWidth = 0.15; ctx.strokeRect(cx, cy, cw, CH); }
+      const red = d.hol || d.dow === 0;
+      txt((t.d === 1 || i === 0 ? t.m + '/' : '') + t.d, cx + 1.4, cy + 3.1, 7, 700, !d.inP ? '#aaa' : red ? '#c62828' : d.dow === 6 ? '#1d4ed8' : '#333');
+      if (d.hol && d.inP) txt(d.hol.replace(' 연휴', '').replace('대체공휴일', '대체'), cx + cw - 1.2, cy + 3, 5.8, 600, '#c62828', 'right');
+      if (!d.inP) return;
+      const mid = cy + CH / 2 + (CH > 9 ? 1.4 : 1.6);
+      if (d.st === 'work') {
+        txt(hm(d.mins), cx + cw / 2, mid, 8, 800, ink, 'center');
+        if (CH > 9) txt(d.s + '~' + d.e, cx + cw / 2, cy + CH - 1.2, 5.8, 500, '#666', 'center');
+      } else if (d.st === 'abs') txt('결근', cx + cw / 2, mid, 8, 800, '#c62828', 'center');
+      else if (d.st === 'leave') txt('연차 ' + hm(d.mins), cx + cw / 2, mid, 7.4, 800, '#047857', 'center');
+      else if (d.paidHol) txt('유급 ' + hm(d.paidHol), cx + cw / 2, mid, 7, 700, '#047857', 'center');
+    });
+    const rows = Math.ceil(list.length / 7);
+    if (ctx) { ctx.strokeStyle = line; ctx.lineWidth = 0.25; ctx.strokeRect(X0, y - 5.5, W, 5.5 + rows * CH); }
+    y += rows * CH + 3;
+  };
+  const foot = () => {
+    fnt(mctx, 7.6, 500);
+    const ls = wrap(mctx, note, W);
+    const fy = PH - MG + 4 - ls.length * 3.4;
+    hline(X0, fy - 3.2, W, thin, 0.2);
+    ls.forEach((l, i) => txt(l, X0, fy + i * 3.4, 7.6, 500, '#777'));
+    return fy - 4;
+  };
+  const isCal = S.logType === 'cal';
+  const wantLog = S.log && (isCal ? C.P.length : D.log.length);
+  const need = () => isCal ? calH() : logH(D.log.length);
+  const draw = t => isCal ? drawCal(t) : drawLog(D.log, t);
+  if (pageNo === 0) {
+    page1();
+    const limit = PH - MG - 7;
+    if (wantLog && y + need() > limit) { RH = 3.75; CH = 8.4; }   /* 한 장에 넣으려고 한 번 더 좁혀 본다 */
+    if (wantLog && y + need() <= limit) draw('근무 기록');
+    else if (wantLog) out.pages = 2;
+    foot();
+  } else {
+    RH = 4.6; CH = 16;
+    draw('근무 기록 — ' + (S.name.trim() || '근로자') + ' · ' + D.monthLabel);
+    foot();
+    out.pages = 2;
+  }
+  out.overflow = y > PH - MG;
+  if (ctx) ctx.restore();
+  return out;
+}
+const MCTX = document.createElement('canvas').getContext('2d');
+/* 명세서 내용의 지문 — 서명한 뒤 금액·날짜가 하나라도 바뀌면 서명을 무효로 본다 */
+function fnv(str) { let h = 0x811c9dc5; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(8, '0'); }
+function docKey(C) {
+  return fnv(JSON.stringify([S.name.trim(), S.birth.trim(), S.biz.trim(), S.boss.trim(), S.pay, C.ps, C.pe, C.wage,
+    C.items.map(i => [i.n, i.a, i.how]), C.deds.map(d => [d.n, d.a]), C.net,
+    C.P.map(d => [d.key, d.st, d.st === 'work' || d.st === 'leave' ? d.s + d.e + d.b : ''])]));
+}
+function sigOf(C) { return S.rc && S.rc.pts && S.rc.key === docKey(C) ? S.rc : null; }
+function bsOf(C) { return S.bsig && S.bs && S.bs.pts && S.bs.key === docKey(C) ? S.bs : null; }   /* 사업주 서명 */
+function fmtAt(ts) { const t = new Date(ts); return t.getFullYear() + '년 ' + (t.getMonth() + 1) + '월 ' + t.getDate() + '일'; }
+/* 서명 획 — 0~1000 정수 좌표. 빈 여백을 잘라 상자 안에 비율대로 맞춘다 */
+function drawSig(ctx, pts, x, y, w, h, color, lw) {
+  let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
+  for (const st of pts) for (let i = 0; i < st.length; i += 2) { a = Math.min(a, st[i]); c = Math.max(c, st[i]); b = Math.min(b, st[i + 1]); d = Math.max(d, st[i + 1]); }
+  if (!isFinite(a)) return;
+  const sw = Math.max(40, c - a), sh = Math.max(40, d - b), k = Math.min(w / sw, h / sh);
+  const ox = x + (w - sw * k) / 2 - a * k, oy = y + (h - sh * k) / 2 - b * k;
+  ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (const st of pts) {
+    ctx.beginPath();
+    for (let i = 0; i < st.length; i += 2) { const px = ox + st[i] * k, py = oy + st[i + 1] * k; if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py); }
+    if (st.length === 2) ctx.lineTo(ox + st[0] * k + 0.05, oy + st[1] * k);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+/* 한 장에 안 들어가면 촘촘 모드로 다시 재 보고, 그래도 넘치면 근무 기록을 2쪽으로 */
+function layoutOf(C, D) {
+  const a = paint(null, C, D, 0, 1, false);
+  if (a.pages === 1) return { dense: false, pages: 1 };
+  return paint(null, C, D, 0, 1, true).pages === 1 ? { dense: true, pages: 1 } : { dense: false, pages: a.pages };
+}
+function pageCount(C, D) { return layoutOf(C, D).pages; }
+function renderPage(C, D, k, ppm) {
+  const cv = document.createElement('canvas');
+  cv.width = Math.round(PW * ppm); cv.height = Math.round(PH * ppm);
+  paint(cv.getContext('2d'), C, D, k, ppm, layoutOf(C, D).dense);
+  return cv;
+}
+
+/* ══ 화면 ══ */
+let CUR = null, DOC = null, curPage = 0, editKey = null, busy = false, VIEW = [];
+function toast(msg, ms) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms || 2200);
+}
+function hourOpts(sel) { let h = ''; for (let i = 0; i < 24; i++) h += '<option value="' + i + '"' + (i === sel ? ' selected' : '') + '>' + String(i).padStart(2, '0') + '</option>'; return h; }
+function minOpts(sel) { let h = ''; for (let i = 0; i < 60; i += 5) h += '<option value="' + i + '"' + (i === sel ? ' selected' : '') + '>' + String(i).padStart(2, '0') + '</option>'; if (sel % 5) h += '<option value="' + sel + '" selected>' + String(sel).padStart(2, '0') + '</option>'; return h; }
+const BRK = [0, 10, 15, 20, 30, 40, 45, 60, 90, 120, 150, 180];
+function brkOpts(sel) {
+  let h = '';
+  const list = BRK.includes(sel) ? BRK : BRK.concat([sel]).sort((a, b) => a - b);
+  for (const b of list) h += '<option value="' + b + '"' + (b === sel ? ' selected' : '') + '>' + (b ? '휴게 ' + hm(b) : '휴게 없음') + '</option>';
+  return h;
+}
+function timeHTML(pfx, s, e, b) {
+  const a = toMin(s), z = toMin(e);
+  return '<span class="tp"><select data-t="' + pfx + 'sh" aria-label="출근 시">' + hourOpts(Math.floor(a / 60)) + '</select><b>:</b>' +
+    '<select data-t="' + pfx + 'sm" aria-label="출근 분">' + minOpts(a % 60) + '</select></span><span class="til">~</span>' +
+    '<span class="tp"><select data-t="' + pfx + 'eh" aria-label="퇴근 시">' + hourOpts(Math.floor(z / 60)) + '</select><b>:</b>' +
+    '<select data-t="' + pfx + 'em" aria-label="퇴근 분">' + minOpts(z % 60) + '</select></span>' +
+    '<select class="brk" data-t="' + pfx + 'b" aria-label="휴게시간">' + brkOpts(b | 0) + '</select>';
+}
+function readTime(root, pfx) {
+  const g = n => +root.querySelector('[data-t="' + pfx + n + '"]').value;
+  return { s: fmtT(g('sh') * 60 + g('sm')), e: fmtT(g('eh') * 60 + g('em')), b: g('b') };
+}
+const ORDER = [1, 2, 3, 4, 5, 6, 0];
+function paintSched() {
+  let h = '';
+  for (const d of ORDER) {
+    const c = S.sch[d], r = workOf(c.s, c.e, c.b);
+    h += '<div class="srow' + (c.on ? '' : ' off') + '" data-d="' + d + '">' +
+      '<button type="button" class="dtog' + (c.on ? ' on' : '') + (d === 0 ? ' sun' : d === 6 ? ' sat' : '') + '" aria-pressed="' + c.on + '">' + WD[d] + '<i>' + (c.on ? '근무' : '쉼') + '</i></button>' +
+      (c.on ? '<div class="tm">' + timeHTML('', c.s, c.e, c.b) + '<span class="sh' + (r.next ? ' nx' : '') + '">' + hm(r.mins) + (r.next ? ' · 다음날' : '') + '</span></div>'
+            : '<div class="offt">쉬는 요일 · 왼쪽 단추를 누르면 근무일</div>') + '</div>';
+  }
+  $('#sched').innerHTML = h;
+  let wk = 0, days = 0;
+  for (let d = 0; d < 7; d++) if (S.sch[d].on) { wk += workOf(S.sch[d].s, S.sch[d].e, S.sch[d].b).mins; days++; }
+  const ju = wk >= 900 ? Math.round(Math.min(wk, 2400) / 5) : 0;
+  $('#schSum').innerHTML = '주 <b>' + days + '일 · ' + hm(wk) + '</b> 약속 → 주휴 <b>' + (ju ? hm(ju) : '없음 (15시간 미만)') + '</b>';
+  $('#schTag').textContent = days ? '주 ' + hm(wk) : '';
+  $('#selWhd').innerHTML = ORDER.map(d => '<option value="' + d + '"' + (d === S.whd ? ' selected' : '') + '>' + WD[d] + '요일' + (S.sch[d].on ? ' (근무 요일)' : '') + '</option>').join('');
+}
+function paintBulk() {
+  const f = ORDER.map(k => S.sch[k]).find(c => c.on) || { s: '09:00', e: '18:00', b: 60 };
+  $('#bulkTm').innerHTML = timeHTML('b', f.s, f.e, f.b) + '<span class="sh" id="bulkH"></span>';
+  bulkHours();
+}
+function bulkHours() {
+  const t = readTime($('#bulkTm'), 'b'), r = workOf(t.s, t.e, t.b);
+  $('#bulkH').textContent = hm(r.mins) + (r.next ? ' · 다음날' : '');
+}
+function paintPeriod() {
+  let yo = '';
+  for (let y = 2025; y <= 2027; y++) yo += '<option value="' + y + '"' + (y === S.y ? ' selected' : '') + '>' + y + '년</option>';
+  $('#selY').innerHTML = yo;
+  let mo = '';
+  for (let m = 1; m <= 12; m++) mo += '<option value="' + m + '"' + (m === S.m ? ' selected' : '') + '>' + m + '월</option>';
+  $('#selM').innerHTML = mo;
+  document.querySelectorAll('#segCut button').forEach(b => b.classList.toggle('on', b.dataset.v === S.cut));
+  $('#cutBox').classList.toggle('hide', S.cut !== 'c');
+  const { ps, pe } = period();
+  if (S.cut === 'c') { if (!S.ps) S.ps = keyOf(ps); if (!S.pe) S.pe = keyOf(pe); $('#inPs').value = S.ps; $('#inPe').value = S.pe; }
+  $('#perHint').textContent = md(ps) + ' ~ ' + md(pe) + ' · ' + (pe - ps + 1) + '일';
+  $('#inPay').value = S.pay || '';
+}
+function paintWageChips() {
+  const y = ymdOf(period().pe).y;
+  const list = [[y, minWage(y)]];
+  if (y < 2027) list.push([2027, MINW[2027]]);
+  $('#wageChips').innerHTML = list.map(([yy, w]) => '<button type="button" class="chip' + (S.wage === w ? ' on' : '') + '" data-w="' + w + '">' + yy + '년 최저 <i>' + comma(w) + '원</i></button>').join('');
+  const mw = minWage(y);
+  $('#minTag').textContent = S.wage < mw ? '최저시급 미달' : '';
+  $('#minTag').style.color = S.wage < mw ? 'var(--danger)' : '';
+}
+/* 화면 달력 — 주휴 판정용 주(C.days)를 다 품으면서 시작 요일(S.cal0)에 맞춘다 */
+function calView(C) {
+  const a0 = C.days[0].dn, b0 = C.days[C.days.length - 1].dn;
+  const a = a0 - ((dow(a0) - S.cal0 + 7) % 7), b = b0 + ((S.cal0 + 6 - dow(b0) + 7) % 7);
+  const map = new Map(C.days.map(d => [d.dn, d]));
+  const out = [];
+  for (let dn = a; dn <= b; dn++) out.push(map.get(dn) || dayModel(dn, C.ps, C.pe));
+  return out;
+}
+function paintCal(C) {
+  const wsd = S.cal0;
+  VIEW = calView(C);
+  document.querySelectorAll('#segCal0 button').forEach(b => b.classList.toggle('on', +b.dataset.v === S.cal0));
+  let hh = '';
+  for (let i = 0; i < 7; i++) { const d = (wsd + i) % 7; hh += '<div class="' + (d === 0 ? 'sun' : d === 6 ? 'sat' : '') + '">' + WD[d] + (d === S.whd ? '·주휴' : '') + '</div>'; }
+  $('#calHead').innerHTML = hh;
+  let g = '';
+  for (const d of VIEW) {
+    const t = ymdOf(d.dn);
+    const cls = ['cc', d.st === 'work' ? 'work' : d.st === 'abs' ? 'abs' : d.st === 'leave' ? 'leave' : '', d.inP ? '' : 'out', d.hol ? 'hol' : '', d.dow === 0 ? 'sun' : d.dow === 6 ? 'sat' : '', d.chg ? 'chg' : '', d.key === editKey ? 'ed' : ''].filter(Boolean).join(' ');
+    const hr = d.st === 'work' ? hShort(d.mins) : d.st === 'abs' ? '결근' : d.st === 'leave' ? '연차' : d.st === 'off' ? '쉼' : '';
+    const tg = d.hol ? d.hol.replace(' 연휴', '').replace('대체공휴일', '대체휴일') : (d.ot && d.inP ? '+' + hShort(d.ot) : '');
+    g += '<button type="button" class="' + cls + '" data-k="' + d.key + '" aria-label="' + t.m + '월 ' + t.d + '일 ' + (hr || '근무 없음') + '">' +
+      '<span class="dn">' + (t.d === 1 || d === VIEW[0] ? t.m + '/' + t.d : t.d) + '</span><span class="hr">' + hr + '</span><span class="tg">' + escH(tg) + '</span></button>';
+  }
+  $('#calGrid').innerHTML = g;
+  $('#calTag').textContent = C.workDays + '일 · ' + hm(C.workMin);
+  /* 주 목록 */
+  let w = '';
+  for (const k of C.weeks) {
+    const nx = !k.inP;
+    const btn = nx ? '' : '<button type="button" class="wb" data-w="' + keyOf(k.end) + '">' + (k.hol ? '빼기' : '넣기') + '</button>';
+    w += '<div class="wk' + (nx ? ' nx' : '') + '"><div class="wt"><b>' + md(k.start) + ' ~ ' + md(k.end) + '</b> · 일한 시간 ' + hm(k.hours) +
+      '<small>' + (nx ? (k.end > C.pe ? '주휴일이 다음 달 — 다음 달 명세서에 들어갑니다' : '지난 명세서에 들어간 주') : k.why + (k.forced ? ' · 직접 ' + (k.forced === 'on' ? '넣음' : '뺌') : '')) + '</small></div>' +
+      '<div class="wv' + (k.hol ? '' : ' no') + '">' + (k.hol ? '주휴 ' + hm(k.hol) : '주휴 없음') + '</div>' + btn + '</div>';
+  }
+  $('#weeks').innerHTML = w;
+}
+function paintDayEd(C) {
+  const box = $('#dayEd');
+  const d = editKey && VIEW.find(x => x.key === editKey);
+  if (!d) { box.classList.add('hide'); editKey = null; return; }
+  const t = ymdOf(d.dn);
+  const sts = [['work', '근무'], ['abs', '결근'], ['off', '쉬는 날'], ['leave', '연차(유급)']];
+  const st = d.st === 'none' ? 'off' : d.st;
+  let h = '<div class="dt"><span>' + t.m + '월 ' + t.d + '일 (' + WD[d.dow] + ')' + (d.inP ? '' : ' · 주휴 판정용') + '</span>' +
+    (d.hol ? '<small>' + escH(d.hol) + '</small>' : '') + '</div>' +
+    '<div class="seg sm" id="edSt">' + sts.map(s => '<button type="button" data-v="' + s[0] + '"' + (s[0] === st ? ' class="on"' : '') + '>' + s[1] + '</button>').join('') + '</div>';
+  if (st === 'work' || st === 'leave') h += '<div class="tm" id="edTm">' + timeHTML('x', d.s, d.e, d.b) + '<span class="sh">' + hm(d.mins) + (d.next ? ' · 다음날' : '') + '</span></div>';
+  if (st === 'work' && C.five && !d.whd && !d.hol) {
+    h += '<label class="chk"><input type="checkbox" id="edSwap"' + (d.swap ? ' checked' : '') + '><span>근무일을 바꾼 날 — 초과근무 아님<i>' +
+      (d.sched ? '약속 ' + hm(d.plan) + '보다 더 일한 시간은 연장(1.5배)으로 셉니다. 합의해 근무 시간을 옮긴 날이면 켜세요' : '원래 쉬는 요일이라 일한 시간 전부 연장(1.5배)으로 셉니다. 다른 요일과 바꾼 날이면 켜세요') + '</i></span></label>';
+  }
+  const hint = st === 'abs' ? '결근한 주는 주휴수당이 없습니다. 지각·조퇴는 결근이 아니니 「근무」로 두고 시간만 고치세요.'
+    : st === 'off' ? '서로 합의해 쉰 날(또는 원래 쉬는 날)입니다. 그 주 약속 시간에서 빠집니다.' + (d.paidHol ? ' 근무 요일에 걸린 공휴일이라 쉬어도 유급휴일수당이 나갑니다.' : '')
+    : st === 'leave' ? '연차를 쓴 날 — 적은 시간만큼 시급을 줍니다. 주휴 판정에서는 출근한 날로 봅니다.'
+    : d.whd ? '주휴일에 일한 날 — ' + (C.five ? '휴일근로(1.5배)로 셉니다.' : '5명 미만이라 시급 그대로입니다.')
+    : d.hol ? (C.five ? '공휴일 근무 — 휴일근로(1.5배)' + (d.paidHol ? ' + 유급휴일수당' : '') + '으로 셉니다.' : d.labor ? '노동절 근무 — 유급휴일수당에 일한 시급을 더합니다.' : '5명 미만이라 시급 그대로입니다.') : '';
+  if (hint) h += '<p class="fine">' + hint + '</p>';
+  h += '<div class="tools"><button type="button" class="mini" id="edReset">시간표대로</button><button type="button" class="mini" id="edClose">닫기</button></div>';
+  box.innerHTML = h;
+  box.classList.remove('hide');
+}
+function paintExtras() {
+  $('#extras').innerHTML = S.extras.map((x, i) =>
+    '<div class="xrow" data-i="' + i + '"><input type="text" data-f="n" value="' + escH(x.n) + '" placeholder="항목 이름" maxlength="14" aria-label="항목 이름">' +
+    '<input class="amt" type="text" inputmode="numeric" data-f="a" value="' + (x.a ? comma(x.a) : '') + '" placeholder="0" aria-label="금액">' +
+    '<label><input type="checkbox" data-f="tf"' + (x.tf ? ' checked' : '') + '>비과세</label>' +
+    '<button type="button" class="del" aria-label="지우기">✕</button></div>').join('');
+  $('#minus').innerHTML = S.minus.map((x, i) =>
+    '<div class="xrow m" data-i="' + i + '"><input type="text" data-f="n" value="' + escH(x.n) + '" placeholder="항목 이름 (예: 가불금)" maxlength="14" aria-label="공제 이름">' +
+    '<input class="amt" type="text" inputmode="numeric" data-f="a" value="' + (x.a ? comma(x.a) : '') + '" placeholder="0" aria-label="공제 금액">' +
+    '<button type="button" class="del" aria-label="지우기">✕</button></div>').join('');
+}
+function paintDedOpts(C) {
+  document.querySelectorAll('#segDed button').forEach(b => b.classList.toggle('on', b.dataset.v === S.ded));
+  $('#insBox').classList.toggle('hide', S.ded !== 'ins');
+  $('#dayBox').classList.toggle('hide', S.ded !== 'day');
+  $('#cNp').checked = S.ins.np; $('#cHi').checked = S.ins.hi; $('#cEi').checked = S.ins.ei; $('#cTax').checked = S.ins.tax;
+  $('#famBox').classList.toggle('hide', !S.ins.tax);
+  $('#cDayEi').checked = S.dayEi;
+  $('#npRate').textContent = (C.R.np * 100).toFixed(2).replace(/0$/, '') + '%';
+  $('#hiRate').textContent = (C.R.hi * 100).toFixed(3) + '% + 장기요양';
+  if (!$('#selFam').options.length) {
+    $('#selFam').innerHTML = Array.from({ length: 11 }, (_, i) => '<option value="' + (i + 1) + '">' + (i + 1) + '명' + (i === 10 ? ' 이상' : '') + '</option>').join('');
+    $('#selKids').innerHTML = Array.from({ length: 6 }, (_, i) => '<option value="' + i + '">' + (i ? i + '명' : '없음') + '</option>').join('');
+  }
+  $('#selFam').value = String(S.fam); $('#selKids').value = String(S.kids);
+}
+function paintDedTab(C) {
+  const auto = C.deds.filter(d => !d.user);
+  if (!auto.length) { $('#dedTab').innerHTML = ''; }
+  else {
+    let h = '';
+    for (const d of auto) {
+      const f = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.dk === d.k;
+      h += '<tr><td>' + d.n + '<small>' + escH(d.how) + '</small></td><td class="v"><input type="text" inputmode="numeric" data-dk="' + d.k + '" class="' + (d.man ? 'man' : '') + '" value="' + (f ? document.activeElement.value : comma(d.a)) + '" aria-label="' + d.n + ' 금액">' +
+        (d.man ? '<button type="button" class="mini" data-auto="' + d.k + '" style="min-height:32px;padding:4px 10px;margin-top:4px;font-size:11.5px">자동 ' + comma(d.auto) + '</button>' : '') + '</td></tr>';
+    }
+    h += '<tr class="tot"><td>공제 합계</td><td class="v">' + won(auto.reduce((a, d) => a + d.a, 0)) + '</td></tr>';
+    if (!(document.activeElement && document.activeElement.dataset && document.activeElement.dataset.dk)) $('#dedTab').innerHTML = h;
+    else {   /* 입력 중인 칸은 다시 그리지 않는다 — 다른 칸만 값 갱신 */
+      for (const d of auto) {
+        const el = $('#dedTab input[data-dk="' + d.k + '"]');
+        if (el && el !== document.activeElement) el.value = comma(d.a);
+      }
+      const tt = $('#dedTab tr.tot td.v'); if (tt) tt.textContent = won(auto.reduce((a, d) => a + d.a, 0));
+    }
+  }
+  const n = $('#dedNote');
+  const msg = S.ded === 'none' ? '' : S.ded === 'ins' ? '보험료는 이번 달 과세 급여로 어림한 값입니다. 공단 고지액이 있으면 금액 칸에 직접 적으세요.'
+    : S.ded === 'biz' ? '3%(소득세) + 0.3%(지방소득세). 근로자에게는 원칙적으로 쓰지 않는 방식입니다.'
+    : '하루 일급에서 15만원을 빼고 6% × 45%(세액공제 55%)를 뗍니다. 이 도구는 이번 달 일급의 평균으로 셉니다. 한 번에 떼는 소득세가 1,000원 미만이면 떼지 않습니다.';
+  n.textContent = msg; n.classList.toggle('hide', !msg);
+}
+function paintSummary(C) {
+  $('#netV').textContent = won(C.net);
+  $('#netSub').textContent = (S.name.trim() || '근로자') + ' · ' + DOC.monthLabel;
+  $('#sPay').textContent = won(C.pay);
+  $('#sDed').textContent = won(C.dedSum);
+  $('#sHrs').textContent = hm(C.workMin);
+  $('#mbarTxt').textContent = won(C.net) + ' · ' + DOC.monthLabel;
+  paintRc(C);
+  $('#checks').innerHTML = checks(C).map(c => '<li class="' + c[0] + '">' + escH(c[1]) + (c[2] ? '<small>' + escH(c[2]) + '</small>' : '') + '</li>').join('');
+}
+function paintStaff() {
+  const list = staffList();
+  $('#staffList').classList.toggle('hide', !list.length);
+  $('#staffList').innerHTML = list.map((p, i) => '<button type="button" class="chip' + (p.name === S.name ? ' on' : '') + '" data-i="' + i + '">' + escH(p.name || '이름 없음') + ' <i>' + comma(p.wage) + '원</i><span class="x" data-del="' + i + '" role="button" aria-label="' + escH(p.name) + ' 지우기">✕</span></button>').join('');
+  $('#staffCnt').textContent = list.length ? '저장한 직원 ' + list.length + '명' : '';
+}
+function paintInfo() {
+  $('#inName').value = S.name; $('#inBirth').value = S.birth; $('#inBiz').value = S.biz; $('#inBoss').value = S.boss;
+  $('#inWage').value = S.wage ? comma(S.wage) : '';
+  document.querySelectorAll('#segSize button').forEach(b => b.classList.toggle('on', +b.dataset.v === S.size));
+  document.querySelectorAll('#segLog button').forEach(b => b.classList.toggle('on', b.dataset.v === (S.log ? S.logType : 'none')));
+  $('#cRcpt').checked = !!S.rcpt;
+  $('#cPyck').checked = !!S.pyck;
+  $('#cBsig').checked = !!S.bsig;
+  $('#rowBsig').classList.toggle('hide', !S.pyck);
+  $('#cHolWork').checked = !!S.holWork;
+}
+/* 미리보기 — 연달아 바뀌면 한 번만 그린다 */
+let pvT = 0;
+function schedulePreview() { clearTimeout(pvT); pvT = setTimeout(drawPreview, 60); }
+function drawPreview() {
+  if (!CUR) return;
+  const n = pageCount(CUR, DOC);
+  if (curPage >= n) curPage = n - 1;
+  const cv = $('#pv');
+  const box = $('.pvbox');
+  const cssW = Math.max(200, Math.min(box.clientWidth - 22, 760));
+  const dpr = Math.min(3, window.devicePixelRatio || 1);
+  const ppm = cssW * dpr / PW;
+  cv.width = Math.round(PW * ppm); cv.height = Math.round(PH * ppm);
+  paint(cv.getContext('2d'), CUR, DOC, curPage, ppm, layoutOf(CUR, DOC).dense);
+  $('#pvNav').classList.toggle('hide', n < 2);
+  $('#pvPos').textContent = (curPage + 1) + ' / ' + n + '쪽';
+  $('#pvPrev').disabled = curPage === 0; $('#pvNext').disabled = curPage >= n - 1;
+  $('#pvState').textContent = n > 1 ? 'A4 ' + n + '쪽' : 'A4 1쪽';
+  $('#dlPdf').querySelector('i').textContent = n > 1 ? 'A4 ' + n + '쪽' : 'A4 한 장';
+}
+function update() {
+  CUR = calc();
+  DOC = docModel(CUR);
+  paintWageChips();
+  paintCal(CUR);
+  paintDayEd(CUR);
+  paintDedOpts(CUR);
+  paintDedTab(CUR);
+  paintSummary(CUR);
+  schedulePreview();
+  saveState();
+  updateMbar();
+}
+
+/* ══ 수령 확인 서명판 ══
+   획은 서명판 폭을 1000 으로 둔 정수 좌표(가로·세로 같은 배율). 명세서에는 빈 여백을 잘라 서명 칸에 맞춰 그린다 */
+const PAD = { pts: [], cur: null };
+function padFit() {
+  const cv = $('#sigPad'), r = cv.getBoundingClientRect();
+  if (!r.width) return;
+  const dpr = Math.min(3, window.devicePixelRatio || 1);
+  const w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  padDraw();
+}
+function padDraw() {
+  const cv = $('#sigPad'), x = cv.getContext('2d'), k = cv.width / 1000;
+  x.clearRect(0, 0, cv.width, cv.height);
+  x.strokeStyle = '#1e3a8a'; x.lineWidth = Math.max(2, cv.width / 170); x.lineCap = 'round'; x.lineJoin = 'round';
+  for (const st of PAD.pts.concat(PAD.cur ? [PAD.cur] : [])) {
+    x.beginPath();
+    for (let i = 0; i < st.length; i += 2) { if (i) x.lineTo(st[i] * k, st[i + 1] * k); else x.moveTo(st[i] * k, st[i + 1] * k); }
+    if (st.length === 2) x.lineTo(st[0] * k + 1, st[1] * k);
+    x.stroke();
+  }
+  $('#pad').classList.toggle('has', PAD.pts.length > 0 || !!PAD.cur);
+}
+function padPoint(e) {
+  const r = $('#sigPad').getBoundingClientRect();
+  return [Math.round((e.clientX - r.left) / r.width * 1000), Math.round((e.clientY - r.top) / r.width * 1000)];
+}
+let SIGT = 'w';        /* 서명판이 받는 서명 — w 근로자(수령 확인) · b 사업주(지급 확인) */
+function sigTargets() {
+  const t = [];
+  if (S.rcpt) t.push('w');
+  if (S.pyck && S.bsig && !SHARED) t.push('b');   /* 링크로 받은 화면에서는 근로자 서명만 */
+  return t;
+}
+function paintRc(C) {
+  const T = sigTargets();
+  $('#rcCard').classList.toggle('hide', !T.length);
+  if (!T.length) return;
+  if (!T.includes(SIGT)) SIGT = T[0];
+  $('#segSigT').classList.toggle('hide', T.length < 2);
+  document.querySelectorAll('#segSigT button').forEach(b => b.classList.toggle('on', b.dataset.v === SIGT));
+  const box = $('#rcDone');
+  if (SIGT === 'b') {
+    const bs = bsOf(C);
+    $('#rcTitle').textContent = '지급 확인 · 사업주 서명';
+    $('#rcDesc').innerHTML = '명세서 「지급 확인」 칸의 <b>(인)</b> 자리에 도장 대신 들어가는 사업주 서명입니다. 서명한 뒤 링크로 보내면 근로자도 사업주 서명이 들어간 명세서를 봅니다.';
+    $('#rcState').textContent = bs ? '서명 완료' : S.bs ? '서명 무효' : '';
+    $('#rcState').style.color = bs ? 'var(--ok)' : S.bs ? 'var(--warn)' : '';
+    $('#sigDel').classList.toggle('hide', !S.bs);
+    if (bs) { box.className = 'note info'; box.textContent = '사업주 서명이 명세서 「지급 확인」 칸에 들어갔습니다(' + fmtAt(bs.at) + ').' + (S.rcpt ? ' 이제 「근로자 서명」을 받거나 링크로 보내세요.' : ''); }
+    else if (S.bs) { box.className = 'note warn'; box.textContent = '서명한 뒤 명세서 내용(금액·날짜·이름)이 바뀌어 사업주 서명을 뺐습니다. 다시 서명하세요.'; }
+    else { box.className = 'note info hide'; box.textContent = ''; }
+    return;
+  }
+  $('#rcTitle').textContent = '수령 확인 · 근로자 서명';
+  $('#rcDesc').innerHTML = '근로자가 명세서를 받고 금액을 확인했다는 서명입니다. 이 화면에서 바로 받거나, <b>링크 만들기</b>로 보내 근로자가 자기 휴대폰에서 서명한 뒤 링크를 돌려보내게 할 수 있습니다.';
+  const rc = sigOf(C);
+  $('#rcState').textContent = rc ? '서명 완료' : S.rc ? '서명 무효' : '';
+  $('#rcState').style.color = rc ? 'var(--ok)' : S.rc ? 'var(--warn)' : '';
+  $('#sigDel').classList.toggle('hide', !S.rc);
+  if (rc) {
+    box.className = 'note info';
+    box.innerHTML = '<b>' + escH(S.name.trim() || '근로자') + '</b> 님 서명이 명세서 「수령 확인」 칸에 들어갔습니다(' + fmtAt(rc.at) + ').' +
+      (SHARED ? ' <b>아래 단추로 서명한 링크를 사장님께 돌려보내세요.</b><div class="tools"><button class="mini pri" id="sigSend" type="button">서명한 링크 보내기</button></div>'
+              : ' PDF·이미지로 저장하거나 링크로 보관하세요.');
+  } else if (S.rc) {
+    box.className = 'note warn';
+    box.textContent = '서명한 뒤 명세서 내용(금액·날짜·이름)이 바뀌어 서명을 뺐습니다. 바뀐 명세서로 다시 서명을 받으세요.';
+  } else { box.className = 'note info hide'; box.textContent = ''; }
+}
+
+/* ══ 링크 — 명세서 입력값을 압축해 주소 # 뒤에 담는다(# 뒤는 서버로 전송되지 않는다) ══ */
+const DEPLOY = 'https://hwj-hub.github.io/hourly_payslip/';
+let SHARED = null;
+function b64u(u8) { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s).replace(/[+]/g, '-').replace(/[/]/g, '_').replace(/=+$/, ''); }
+function unb64u(str) { str = str.replace(/-/g, '+').replace(/_/g, '/'); while (str.length % 4) str += '='; const b = atob(str), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+async function pipeBytes(u8, T) { return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(T)).arrayBuffer()); }
+function linkState() {
+  const o = JSON.parse(JSON.stringify(S));
+  delete o.savedAt;
+  const lo = CUR.days[0].dn - 7, hi = CUR.days[CUR.days.length - 1].dn + 7;    /* 이 명세서와 상관없는 날짜 기록은 뺀다 */
+  for (const m of ['ov', 'wk']) for (const k of Object.keys(o[m] || {})) { const dn = dnFromKey(k); if (dn == null || dn < lo || dn > hi) delete o[m][k]; }
+  return o;
+}
+async function packLink() {
+  let u = te8.encode(JSON.stringify({ v: 1, s: linkState(), n: CUR.net })), pre = 'j';
+  if (typeof CompressionStream === 'function') { try { u = await pipeBytes(u, new CompressionStream('deflate-raw')); pre = 'z'; } catch (e) { /* 압축 없이 */ } }
+  return pre + b64u(u);
+}
+async function unpackLink(str) {
+  let u = unb64u(str.slice(1));
+  if (str[0] === 'z') u = await pipeBytes(u, new DecompressionStream('deflate-raw'));
+  return JSON.parse(new TextDecoder().decode(u));
+}
+function baseUrl() { return /^https?:$/.test(location.protocol) ? location.origin + location.pathname : DEPLOY; }
+function copyText(t, msg) {
+  const done = () => toast(msg, 3600);
+  try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t).then(done, () => fallbackCopy(t, done)); return; } } catch (e) { /* 아래로 */ }
+  fallbackCopy(t, done);
+}
+async function runLink() {
+  if (!CUR) return '';
+  const url = baseUrl() + '#p=' + await packLink();
+  const rc = sigOf(CUR);
+  $('#linkUrl').value = url;
+  $('#linkBox').classList.remove('hide');
+  $('#linkShare').classList.toggle('hide', !(navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)));
+  $('#linkNote').innerHTML = '링크 안에 이 명세서 내용이 모두 들어 있습니다(' + comma(url.length) + '자). <b>서버에 저장되지 않고</b>, 링크를 연 브라우저가 같은 명세서를 다시 그립니다. ' +
+    '받을 사람에게만 보내고, 보관하려면 메모나 카톡 「나와의 채팅」에 붙여 두세요.' +
+    (rc ? ' <b>근로자 서명이 들어 있는 링크</b>입니다.' : S.rcpt ? ' 근로자가 링크를 열어 서명한 뒤 「서명한 링크」를 돌려보내면 수령 확인이 끝납니다.' : '');
+  return url;
+}
+
+/* ══ 저장 · 보내기 · 인쇄 ══ */
+function docBase() {
+  const t = ymdOf(CUR.pe);
+  return '임금명세서_' + t.y + '년' + t.m + '월_' + ((S.name.trim() || '근로자').replace(/[\\/:*?"<>|\s]+/g, ''));
+}
+function sleep0() { return new Promise(r => setTimeout(r, 0)); }
+function canvasBlob(cv, type, q) { return new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('그림을 만들지 못했습니다')), type, q)); }
+const te8 = new TextEncoder();
+function buildPdf(pages, pwPt, phPt, title) {
+  const parts = [], offs = [];
+  let len = 0;
+  const push = x => { const u = typeof x === 'string' ? te8.encode(x) : x; parts.push(u); len += u.length; };
+  push('%PDF-1.4\n'); push(new Uint8Array([37, 226, 227, 207, 211, 10]));
+  const nObj = 3 + pages.length * 3;
+  const obj = (n, body) => { offs[n] = len; push(n + ' 0 obj\n'); for (const b of [].concat(body)) push(b); push('\nendobj\n'); };
+  /* 제목은 UTF-16BE 16진수 문자열 */
+  let hex = 'FEFF';
+  for (const ch of title) { const c = ch.codePointAt(0); if (c > 0xFFFF) continue; hex += c.toString(16).toUpperCase().padStart(4, '0'); }
+  obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2, '<< /Type /Pages /Kids [' + pages.map((_, k) => (4 + k * 3) + ' 0 R').join(' ') + '] /Count ' + pages.length + ' >>');
+  obj(3, '<< /Title <' + hex + '> /Producer (hourly_payslip) >>');
+  pages.forEach((pg, k) => {
+    const n = 4 + k * 3;
+    const cs = 'q ' + pwPt.toFixed(2) + ' 0 0 ' + phPt.toFixed(2) + ' 0 0 cm /Im0 Do Q';
+    obj(n, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + pwPt.toFixed(2) + ' ' + phPt.toFixed(2) + '] /Resources << /XObject << /Im0 ' + (n + 2) + ' 0 R >> >> /Contents ' + (n + 1) + ' 0 R >>');
+    obj(n + 1, ['<< /Length ' + cs.length + ' >>\nstream\n', cs, '\nendstream']);
+    obj(n + 2, ['<< /Type /XObject /Subtype /Image /Width ' + pg.w + ' /Height ' + pg.h + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + pg.data.length + ' >>\nstream\n', pg.data, '\nendstream']);
+  });
+  const xref = len;
+  let x = 'xref\n0 ' + (nObj + 1) + '\n0000000000 65535 f \n';
+  for (let n = 1; n <= nObj; n++) x += String(offs[n]).padStart(10, '0') + ' 00000 n \n';
+  push(x + 'trailer\n<< /Size ' + (nObj + 1) + ' /Root 1 0 R /Info 3 0 R >>\nstartxref\n' + xref + '\n%%EOF\n');
+  return new Blob(parts, { type: 'application/pdf' });
+}
+async function makePdf() {
+  const n = pageCount(CUR, DOC), pages = [];
+  for (let k = 0; k < n; k++) {
+    const cv = renderPage(CUR, DOC, k, 10);
+    const blob = await canvasBlob(cv, 'image/jpeg', 0.92);
+    pages.push({ data: new Uint8Array(await blob.arrayBuffer()), w: cv.width, h: cv.height });
+    cv.width = cv.height = 1;
+    await sleep0();
+  }
+  return buildPdf(pages, PW * 72 / 25.4, PH * 72 / 25.4, docBase().replace(/_/g, ' '));
+}
+async function makePng() {
+  const n = pageCount(CUR, DOC), ppm = 7;
+  const cvs = [];
+  for (let k = 0; k < n; k++) cvs.push(renderPage(CUR, DOC, k, ppm));
+  if (n === 1) return canvasBlob(cvs[0], 'image/png');
+  /* 두 쪽이면 세로로 이어 붙여 그림 한 장으로 — 휴대폰에서 넘겨 보기 쉽게 */
+  const gap = 24, out = document.createElement('canvas');
+  out.width = cvs[0].width; out.height = cvs.reduce((a, c) => a + c.height, 0) + gap * (n - 1);
+  const x = out.getContext('2d');
+  x.fillStyle = '#d9dedd'; x.fillRect(0, 0, out.width, out.height);
+  let y = 0; for (const c of cvs) { x.drawImage(c, 0, y); y += c.height + gap; }
+  return canvasBlob(out, 'image/png');
+}
+function fmtSize(b) { return b < 1024 ? b + 'B' : b < 1048576 ? (b / 1024).toFixed(0) + 'KB' : (b / 1048576).toFixed(1) + 'MB'; }
+async function runSave(kind) {
+  if (busy || !CUR) return;
+  busy = true;
+  const b = kind === 'pdf' ? $('#dlPdf') : $('#dlPng'), old = b.innerHTML;
+  b.innerHTML = '만드는 중<i>잠시만요</i>';
+  try {
+    await sleep0();
+    const blob = kind === 'pdf' ? await makePdf() : await makePng();
+    const name = docBase() + (kind === 'pdf' ? '.pdf' : '.png');
+    if (!download(blob, name)) return;
+    toast('저장했습니다 · ' + name + ' · ' + fmtSize(blob.size), 3200);
+    AD.done('「' + name + '」로 저장했습니다(' + fmtSize(blob.size) + ' · 실수령액 ' + won(CUR.net) + '). 근로자에게 보내기 전에 이것만 확인하세요.', kind === 'pdf' ? 'PDF로 저장했습니다' : '이미지로 저장했습니다');
+  } catch (e) {
+    console.error(e);
+    toast('만들지 못했습니다 · ' + ((e && e.message) || e), 5200);
+  } finally { busy = false; b.innerHTML = old; }
+}
+async function runShare() {
+  if (busy || !CUR) return;
+  busy = true;
+  try {
+    const blob = await makePng();
+    const file = new File([blob], docBase() + '.png', { type: 'image/png' });
+    if (!(navigator.canShare && navigator.canShare({ files: [file] }))) { toast('이 브라우저는 바로 보내기를 지원하지 않습니다. 「이미지로 저장」을 써 주세요.', 4200); return; }
+    await navigator.share({ files: [file], title: docBase().replace(/_/g, ' ') });
+    AD.done('명세서 이미지를 보냈습니다(실수령액 ' + won(CUR.net) + ').', '보냈습니다');
+  } catch (e) {
+    if (!(e && e.name === 'AbortError')) toast('보내지 못했습니다 · ' + ((e && e.message) || e), 4200);
+  } finally { busy = false; }
+}
+async function doPrint() {
+  if (busy || !CUR) return;
+  busy = true;
+  try {
+    const n = pageCount(CUR, DOC), area = $('#printArea');
+    area.innerHTML = '';
+    for (let k = 0; k < n; k++) {
+      const cv = renderPage(CUR, DOC, k, 10);
+      const img = new Image();
+      img.src = URL.createObjectURL(await canvasBlob(cv, 'image/png'));
+      img.alt = '임금명세서 ' + (k + 1) + '쪽';
+      area.appendChild(img);
+      await new Promise(r => { img.onload = r; img.onerror = r; });
+    }
+    $('#pageStyle').textContent = '@page{size:A4 portrait;margin:0}';
+    document.body.classList.add('printing');
+    const done = () => { document.body.classList.remove('printing'); window.removeEventListener('afterprint', done); };
+    window.addEventListener('afterprint', done);
+    setTimeout(() => {
+      try { window.print(); } catch (e) { toast('인쇄 창을 열지 못했습니다'); }
+      setTimeout(done, 1500);
+      AD.done('인쇄 창을 열었습니다. 인쇄 설정에서 용지 A4 · 배율 100%(실제 크기)를 고르세요.', '인쇄 창을 열었습니다');
+    }, 60);
+  } finally { busy = false; }
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   앱 안 브라우저(네이버·카카오톡 등) — 파일 내려받기·인쇄 창이 막혀 있다
+     ① 앱 안에서 열리면 사용을 막는 창을 띄워 브라우저를 옮기게 한다
+     ② 그래도 저장을 누르면 blob: 대신 data: 주소로 시도한다(10MB 까지)
+     ③ 아이폰은 사파리를 강제로 열 수 없어 주소 복사 + 메뉴 안내로 간다
+   ════════════════════════════════════════════════════════════ */
+const UA = navigator.userAgent || '';
+const IA = {
+  naver: /NAVER\(inapp/i.test(UA),
+  kakao: /KAKAOTALK/i.test(UA),
+  line: /\bLine\//i.test(UA),
+  ios: /iPhone|iPad|iPod/i.test(UA),
+  android: /Android/i.test(UA)
+};
+IA.on = IA.naver || IA.kakao || IA.line ||
+  /Instagram|FBAN|FBAV|FB_IAB|DaumApps|everytimeApp|band\/|KAKAOSTORY/i.test(UA) ||
+  (IA.android && /;\s*wv\)/i.test(UA));   /* 안드로이드 WebView 표시 */
+const IA_MAX = 10 * 1048576;               /* data: 주소는 base64 라 4/3 배로 커진다 — 그 이상은 막는다 */
+
+function externalUrl() {
+  const url = location.href;
+  if (IA.kakao) return 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url);
+  if (IA.line) return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'openExternalBrowser=1';
+  if (IA.android) return 'intent://' + url.replace(/^https?:\/\//i, '') +
+    '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
+  return '';          /* 아이폰은 사파리를 강제로 열 수 없다 */
+}
+function copyAddr(guide) {
+  const url = location.href;
+  const done = () => toast(guide ? '주소를 복사했습니다. 사파리를 열고 붙여 넣거나, 메뉴에서 「다른 브라우저로 열기」를 누르세요.' : '주소를 복사했습니다.', 5200);
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(url).then(done, () => fallbackCopy(url, done)); return; }
+  } catch (e) { /* 아래로 */ }
+  fallbackCopy(url, done);
+}
+function fallbackCopy(text, done) {
+  const t = document.createElement('textarea');
+  t.value = text; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;left:-9999px;top:0';
+  document.body.appendChild(t); t.select(); t.setSelectionRange(0, text.length);
+  try { document.execCommand('copy'); done(); } catch (e) { toast('주소를 길게 눌러 복사해 주세요.', 4200); }
+  t.remove();
+}
+/* 저장은 전부 이 한 곳을 거친다. 막혔으면 false */
+function download(blob, name) {
+  if (IA.on) return downloadInApp(blob, name);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  return true;
+}
+function downloadInApp(blob, name) {
+  if (blob.size > IA_MAX) {
+    toast('앱 안에서는 10MB가 넘는 파일을 저장할 수 없습니다. 위쪽 「' + $('#iaGo').textContent + '」를 눌러 주세요.', 5600);
+    return false;
+  }
+  const go = href => {
+    const a = document.createElement('a');
+    a.href = href; a.download = name; a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); a.remove();
+  };
+  const fr = new FileReader();
+  fr.onload = () => { try { go(fr.result); } catch (e) { /* 안내로 넘어간다 */ } };
+  fr.onerror = () => toast('앱 안에서는 저장이 막혀 있습니다. 위쪽 「' + $('#iaGo').textContent + '」를 눌러 주세요.', 5200);
+  fr.readAsDataURL(blob);
+  return true;
+}
+
+/* ════════════════════════════════════════════════════════════
+   광고 — 한 화면에 4곳 (애드핏 운영정책: 한 페이지 4개 초과 게재 금지)
+     모바일  ① 맨 위 320×50   ③ 본문 320×100   ④ 완료 카드 300×250   ⑤ 하단 오버형 320×50
+     PC      ① 맨 위 320×50   ② 미리보기 위 320×50   ③ 본문 320×100   ④ 완료 카드 300×250
+   지킨 것
+     · ins 를 자리마다 다 만든 뒤 ba.min.js 는 맨 끝에 딱 한 번 붙인다
+     · 입력 중·미리보기를 보는 중에는 오버형을 내려 둔다(핵심 행동 중 광고 노출 금지)
+     · 완료 광고는 창으로 덮지 않고 본문에 카드로 펼친다(콘텐츠를 가리는 배치 금지)
+     · 앱 안에서 막는 창이 떠 있으면 광고를 부르지 않는다
+   ※ 단위 ID 는 애드핏에서 크기별로 따로 발급받아 아래 units 에만 적으면 된다.
+     DAN-XXXX… 로 남아 있는 자리는 점선 자리표시자만 그리고 요청은 보내지 않는다.
+   ════════════════════════════════════════════════════════════ */
+const AD = {
+  units: {
+    top:     { id: 'DAN-XXXXXXXXXXXXXXX1', w: 320, h: 50 },   /* 맨 위 · 모바일과 PC 크기가 같아 하나로 겸한다 */
+    side_pc: { id: 'DAN-XXXXXXXXXXXXXXX2', w: 320, h: 50 },   /* PC 미리보기 카드 위 (좁은 화면에서는 안 뜬다) */
+    mid:     { id: 'DAN-XXXXXXXXXXXXXXX3', w: 320, h: 100 },  /* 본문 중간 · 모바일·PC 같은 자리라 하나로 쓴다 */
+    done:    { id: 'DAN-XXXXXXXXXXXXXXX4', w: 300, h: 250 },  /* 저장 완료 카드 · 모바일·PC 공통 */
+    anchor:  { id: 'DAN-XXXXXXXXXXXXXXX5', w: 320, h: 50 }    /* 모바일 하단 오버형 (PC 에서는 안 뜬다) */
+  },
+  iframeOk: true,   /* iframe 안에서도 띄우려면 true (애드핏에서는 권하지 않음) */
+  popup: true,      /* 완료 카드 */
+  overlay: true,    /* 하단 오버형 */
+  init() {
+    if (this.started) return;
+    this.started = true;
+    this.off = window.top !== window.self && !this.iframeOk;
+    this.pc = window.matchMedia('(min-width:980px)').matches;
+    if (this.off) { document.body.classList.add('no-ad'); return; }
+    this.put($('#ad-top'), 'top');
+    if (this.pc) this.put($('#ad-side'), 'side_pc');
+    this.put($('#ad-mid'), 'mid');
+    /* 숨어 있는 자리(하단 오버형·완료 카드)는 화면에 나온 다음에 부른다 —
+       안 보이는 동안 부르면 보는 사람 없이 노출만 잡힌다 */
+    this.load();
+  },
+  put(box, key, preload) {
+    const u = this.units[key];
+    if (!box || !u || box.dataset.ad) return;
+    if (document.querySelectorAll('ins.kakao_ad_area').length >= 4) return;
+    box.dataset.ad = key;
+    box.style.width = u.w + 'px';
+    if (/XXXX/.test(u.id)) { box.style.height = u.h + 'px'; box.innerHTML = '<div class="ad-ph">광고 ' + u.w + ' × ' + u.h + '</div>'; return; }
+    box.style.minHeight = u.h + 'px';
+    /* 광고가 안 내려오면 빈 칸이 남는다 — 공식 콜백으로 접는다. 단위가 여럿이면 이름이 서로 달라야 한다 */
+    const fail = 'adNone_' + box.id.replace(/-/g, '_');
+    window[fail] = () => {
+      box.classList.add('ad-none');
+      if (key === 'anchor') { this.closed = true; this.sync(true); }
+      if (key === 'done') { const d = $('#doneAd'); if (d) d.classList.add('ad-none'); }
+    };
+    const ins = document.createElement('ins');
+    ins.className = 'kakao_ad_area'; ins.style.display = 'none';
+    ins.setAttribute('data-ad-unit', u.id);
+    ins.setAttribute('data-ad-width', String(u.w));
+    ins.setAttribute('data-ad-height', String(u.h));
+    ins.setAttribute('data-ad-onfail', fail);
+    if (preload) ins.setAttribute('data-ad-preload', 'Y');
+    box.appendChild(ins);
+    this.need = true;
+  },
+  show(box, key) {
+    if (this.off || !this.started || !box || box.dataset.ad) return;
+    this.put(box, key, true);
+    this.load();
+    try {
+      const ins = box.querySelector('ins');
+      if (ins && window.adfit && typeof window.adfit.render === 'function') window.adfit.render(ins);
+    } catch (e) { /* 안 되면 0.7초 뒤 preload 차례가 채운다 */ }
+  },
+  load() {
+    if (!this.need || this.loaded) return;
+    this.loaded = true;
+    const s = document.createElement('script');
+    s.type = 'text/javascript'; s.async = true;
+    s.src = 'https://t1.kakaocdn.net/kas/static/ba.min.js';
+    document.body.appendChild(s);
+  },
+  onScreen(el) {
+    if (!el || el.classList.contains('hide')) return false;
+    const r = el.getBoundingClientRect();
+    return r.height > 0 && r.bottom > 0 && r.top < window.innerHeight;
+  },
+  /* 하단 오버형 — 읽는 구간(계산 방법·이럴 때 씁니다·자주 묻는 것·주의)에서만 올라온다.
+     입력 카드·명세서·완료 카드 가운데 하나라도 화면에 보이면 내린다.
+     (휴대폰에서는 main 이 display:contents 라 #form 자체는 크기가 0 — 카드마다 따로 본다) */
+  sync(barOn) {
+    if (this.off || this.pc || !this.overlay || !this.started) return;
+    const modal = document.body.classList.contains('ia-lock');
+    const ae = document.activeElement;
+    const typing = !!(ae && ae.closest && (ae.closest('#form') || ae.closest('#side')) &&
+      (/^(SELECT|TEXTAREA)$/.test(ae.tagName) || (ae.tagName === 'INPUT' && !/^(checkbox|radio|button|file|range|color)$/.test(ae.type))));
+    const working = ['#infoCard', '#payCard', '#schCard', '#calCard', '#dedCard', '#pvCard', '#doneCard'].some(s => this.onScreen($(s)));
+    const show = !this.closed && !barOn && !modal && !typing && !working && window.scrollY > 320;
+    $('#anchor').classList.toggle('on', show);
+    document.body.classList.toggle('anch', show);
+    if (show) this.show($('#ad-anchor'), 'anchor');
+  },
+  done(msg, title) {
+    if (!this.popup) return;
+    $('#doneMsg').textContent = msg;
+    if (title) $('#doneTitle').textContent = title;
+    $('#doneCard').classList.remove('hide');
+    if (!this.off) this.show($('#ad-done'), 'done');
+    clearTimeout(this.goT);
+    this.goT = setTimeout(() => {
+      $('#doneCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      updateMbar();
+    }, 250);
+  },
+  hideDone() { $('#doneCard').classList.add('hide'); updateMbar(); }
+};
+
+function initInApp() {
+  if (!IA.on) return;
+  const app = IA.naver ? (/NAVER\(inapp;\s*blog/i.test(UA) ? '네이버 블로그 앱' : '네이버 앱') : IA.kakao ? '카카오톡' : IA.line ? '라인' : '앱';
+  const copyOnly = IA.ios && !IA.kakao && !IA.line;
+  const chromeIntent = IA.android && !IA.kakao && !IA.line;
+  document.body.classList.add('inapp');
+  $('#iaMsg').textContent = app + ' 안에서는 명세서 PDF·이미지 저장이 안 됩니다.';
+  $('#doneInapp').classList.remove('hide');
+  $('#iaDesc').innerHTML = '<b>' + app + '</b> 안에서 열렸습니다. 이 화면에서는 ' +
+    '<b>PDF·이미지를 내려받을 수 없고 인쇄 창도 뜨지 않습니다.</b> 근무 시간을 다 넣어도 명세서를 저장할 수 없으니 ' +
+    '<b>입력하기 전에</b> 브라우저를 옮겨 주세요.';
+  const steps = copyOnly
+    ? ['아래 <b>주소 복사</b>를 누르세요.',
+       '오른쪽 아래 <b>메뉴</b>에서 「다른 브라우저로 열기」를 누르거나, <b>사파리</b> 주소창에 붙여 넣으세요.']
+    : chromeIntent
+      ? ['아래 <b>크롬에서 열기</b>를 누르세요.',
+         '크롬이 없으면 오른쪽 위 <b>메뉴</b>에서 「다른 브라우저로 열기」를 누르세요.']
+      : ['아래 <b>다른 브라우저로 열기</b>를 누르세요.',
+         '열리지 않으면 ' + (IA.ios ? '화면의' : '오른쪽 위') + ' <b>메뉴</b>에서 「다른 브라우저로 열기」를 누르세요.'];
+  $('#iaSteps').innerHTML = steps.map(t => '<li>' + t + '</li>').join('');
+  const label = copyOnly ? '주소 복사' : chromeIntent ? '크롬에서 열기' : '다른 브라우저로 열기';
+  $('#iaGo').textContent = label; $('#iaGo2').textContent = label; $('#doneGo').textContent = label;
+  $('#iaSub').textContent = copyOnly
+    ? '사파리에 붙여 넣거나, 오른쪽 아래 메뉴에서 「다른 브라우저로 열기」를 누르세요.'
+    : '입력하기 전에 옮기면 다시 적지 않아도 됩니다.';
+  let hidden = false;
+  try { hidden = sessionStorage.getItem('hourly_payslip.iahide') === '1'; } catch (e) { /* 무시 */ }
+  if (hidden) document.body.classList.remove('inapp');
+  lockInApp(true);
+}
+function lockInApp(on) {
+  document.body.classList.toggle('ia-lock', on);
+  const w = document.querySelector('.wrap');
+  if (on) w.setAttribute('inert', ''); else w.removeAttribute('inert');
+  if (!on) $('#iaModal').blur();
+}
+function iaCopied() {
+  $('#iaDesc').innerHTML = '주소를 <b>복사했습니다.</b> 이제 <b>사파리</b>를 열고 주소창에 붙여 넣으세요.';
+  $('#iaSteps').innerHTML = '<li>홈 화면에서 <b>사파리</b>를 엽니다.</li>' +
+    '<li>주소창을 길게 눌러 <b>붙여넣기</b> 하세요.</li>' +
+    '<li>또는 이 화면의 <b>메뉴</b> → 「다른 브라우저로 열기」.</li>';
+}
+
+
+/* 휴대폰: 입력 카드를 보는 동안 명세서가 화면 밖이면 아래 바를 띄운다 */
+function updateMbar() {
+  const pr = $('#pvCard').getBoundingClientRect();
+  const inSet = ['#infoCard', '#payCard', '#schCard', '#calCard', '#dedCard'].some(s => AD.onScreen($(s)));
+  const on = inSet && (pr.bottom < 60 || pr.top > window.innerHeight);
+  $('#mbar').classList.toggle('on', on);
+  $('#mbarGo').textContent = pr.bottom < 60 ? '명세서 ↑' : '명세서 ↓';
+  AD.sync(on);
+}
+
+/* ══ 입력 연결 ══ */
+function bindMoney(el, set) {
+  el.addEventListener('input', () => {
+    const pos = el.selectionStart, before = el.value.length;
+    const v = num(el.value);
+    el.value = v ? comma(v) : '';
+    const p = Math.max(0, pos + (el.value.length - before));
+    try { el.setSelectionRange(p, p); } catch (e) { /* 무시 */ }
+    set(v);
+  });
+}
+function customDefaults() {
+  let py = S.y, pm = S.m - 1; if (pm < 1) { pm = 12; py--; }
+  S.ps = keyOf(dnOf(py, pm, 21)); S.pe = keyOf(dnOf(S.y, S.m, 20));
+}
+function shiftCustom() {
+  const a = dnFromKey(S.ps), b = dnFromKey(S.pe);
+  if (a == null || b == null) { customDefaults(); return; }
+  const da = ymdOf(a).d, db = ymdOf(b).d;
+  let py = S.y, pm = S.m - 1; if (pm < 1) { pm = 12; py--; }
+  const inPrev = ymdOf(a).m !== ymdOf(b).m;
+  const sy = inPrev ? py : S.y, sm = inPrev ? pm : S.m;
+  S.ps = keyOf(dnOf(sy, sm, Math.min(da, lastDay(sy, sm))));
+  S.pe = keyOf(dnOf(S.y, S.m, Math.min(db, lastDay(S.y, S.m))));
+}
+function firstSched() { for (const d of ORDER) if (S.sch[d].on) return S.sch[d]; return { s: '09:00', e: '18:00', b: 60 }; }
+function setOv(day, patch) {
+  const base = { st: day.st === 'none' ? 'off' : day.st, s: day.s, e: day.e, b: day.b, swap: day.swap };
+  const n = Object.assign(base, patch);
+  if (n.st === 'work' && !day.sched && day.st !== 'work' && !patch.s) { const f = firstSched(); n.s = f.s; n.e = f.e; n.b = f.b; }
+  const sc = schedOf(day.dow);
+  const restDef = sc && day.hol && !S.holWork;          /* 공휴일을 쉬는 날로 채우는 설정이면 기본값이 「쉬는 날」 */
+  const same = sc && !restDef ? (n.st === 'work' && n.s === sc.s && n.e === sc.e && (n.b | 0) === (sc.b | 0) && !n.swap)
+                  : (n.st === 'off');
+  if (same) delete S.ov[day.key]; else S.ov[day.key] = n;
+}
+function periodChanged(oldPay) {
+  const d = defPay(S.y, S.m);
+  if (!S.pay || S.pay === oldPay) S.pay = d;
+  S.man = {};
+  editKey = null;
+  paintPeriod();
+  update();
+}
+function loadStaff(p) {
+  const f = freshState();
+  for (const k of STAFF_KEYS) if (p[k] !== undefined) S[k] = JSON.parse(JSON.stringify(p[k]));
+  S.ov = {}; S.wk = {}; S.man = {}; S.rc = null; S.bs = null;
+  if (!S.sch || S.sch.length !== 7) S.sch = f.sch;
+  editKey = null;
+  paintInfo(); paintSched(); paintExtras(); paintStaff();
+  update();
+}
+
+function init() {
+  loadState();
+  /* 지난번에 쓴 달이 지났으면 이번에 만들 달로 옮긴다(시간표·사람 정보는 그대로) */
+  const dp = defPeriod();
+  if ((S.y * 12 + S.m) < (dp.y * 12 + dp.m) && S.savedAt && Date.now() - S.savedAt > 7 * DAY) {
+    S.y = dp.y; S.m = dp.m; S.pay = defPay(dp.y, dp.m); S.man = {}; if (S.cut === 'c') shiftCustom();
+  }
+  const locked = () => document.body.classList.contains('ia-lock');
+
+  /* 1. 사람 */
+  const txtIn = (id, k) => $(id).addEventListener('input', e => { S[k] = e.target.value; update(); if (k === 'name') paintStaff(); });
+  txtIn('#inName', 'name'); txtIn('#inBirth', 'birth'); txtIn('#inBiz', 'biz'); txtIn('#inBoss', 'boss');
+  $('#segSize').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    S.size = +b.dataset.v; paintInfo(); update();
+  });
+  $('#saveStaff').addEventListener('click', () => {
+    if (!S.name.trim()) { toast('근로자 이름을 먼저 적어 주세요'); $('#inName').focus(); return; }
+    const list = staffList().filter(p => p.name !== S.name.trim());
+    const p = {}; for (const k of STAFF_KEYS) p[k] = JSON.parse(JSON.stringify(S[k]));
+    p.name = S.name.trim();
+    list.unshift(p);
+    if (list.length > 20) list.length = 20;
+    if (staffSave(list)) toast('「' + p.name + '」 저장 · 다음 달엔 이름만 누르면 됩니다'); else toast('이 브라우저는 저장을 막고 있습니다');
+    paintStaff();
+  });
+  $('#newStaff').addEventListener('click', () => {
+    S.name = ''; S.birth = ''; S.ov = {}; S.wk = {}; S.man = {}; S.extras = []; S.minus = []; S.rc = null; S.bs = null;
+    editKey = null;
+    paintInfo(); paintExtras(); paintStaff(); update();
+    $('#inName').focus();
+  });
+  $('#staffList').addEventListener('click', e => {
+    const x = e.target.closest('[data-del]');
+    const list = staffList();
+    if (x) {
+      e.stopPropagation();
+      const i = +x.dataset.del, p = list[i]; if (!p) return;
+      if (!confirm('「' + p.name + '」 저장을 지울까요?')) return;
+      list.splice(i, 1); staffSave(list); paintStaff(); toast('지웠습니다');
+      return;
+    }
+    const b = e.target.closest('button[data-i]'); if (!b) return;
+    const p = list[+b.dataset.i]; if (p) { loadStaff(p); toast('「' + p.name + '」 불러옴 · 달력의 이번 달 변경만 다시 넣으세요'); }
+  });
+
+  /* 2. 시급·기간 */
+  bindMoney($('#inWage'), v => { S.wage = Math.min(v, 1000000); update(); });
+  $('#wageChips').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    S.wage = +b.dataset.w; $('#inWage').value = comma(S.wage); update();
+  });
+  $('#inPay').addEventListener('change', e => { S.pay = e.target.value; update(); });
+  $('#selY').addEventListener('change', e => { const o = defPay(S.y, S.m); S.y = +e.target.value; if (S.cut === 'c') shiftCustom(); periodChanged(o); });
+  $('#selM').addEventListener('change', e => { const o = defPay(S.y, S.m); S.m = +e.target.value; if (S.cut === 'c') shiftCustom(); periodChanged(o); });
+  $('#segCut').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    S.cut = b.dataset.v;
+    if (S.cut === 'c' && (!S.ps || !S.pe)) customDefaults();
+    periodChanged(S.pay);
+  });
+  const perIn = (id, k) => $(id).addEventListener('change', e => {
+    S[k] = e.target.value;
+    const a = dnFromKey(S.ps), b = dnFromKey(S.pe);
+    if (a != null && b != null && (b < a || b - a > 62)) toast('기간은 63일 안으로, 시작일이 먼저여야 합니다');
+    S.man = {}; paintPeriod(); update();
+  });
+  perIn('#inPs', 'ps'); perIn('#inPe', 'pe');
+
+  /* 3. 시간표 */
+  $('#sched').addEventListener('click', e => {
+    const b = e.target.closest('.dtog'); if (!b) return;
+    const d = +b.closest('.srow').dataset.d;
+    S.sch[d].on = !S.sch[d].on;
+    if (S.sch[d].on) {   /* 켤 때는 다른 근무 요일의 시간을 따라간다 */
+      const f = ORDER.map(k => S.sch[k]).find((c, i) => c.on && ORDER[i] !== d);
+      if (f) { S.sch[d].s = f.s; S.sch[d].e = f.e; S.sch[d].b = f.b; }
+      if (d === S.whd) { const alt = [0, 6, 5, 4, 3, 2, 1].find(k => !S.sch[k].on); if (alt != null) { S.whd = alt; toast('주휴일을 ' + WD[alt] + '요일로 옮겼습니다'); } }
+    }
+    paintSched(); update();
+  });
+  $('#sched').addEventListener('change', e => {
+    const row = e.target.closest('.srow'); if (!row) return;
+    const d = +row.dataset.d;
+    Object.assign(S.sch[d], readTime(row, ''));
+    paintSched(); update();
+  });
+  $('#selWhd').addEventListener('change', e => { S.whd = +e.target.value; S.wk = {}; paintSched(); update(); });
+
+  /* 4. 달력 */
+  $('#calGrid').addEventListener('click', e => {
+    const b = e.target.closest('.cc'); if (!b) return;
+    editKey = editKey === b.dataset.k ? null : b.dataset.k;
+    update();
+    if (editKey) setTimeout(() => $('#dayEd').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 30);
+  });
+  const edDay = () => VIEW.find(x => x.key === editKey);
+  $('#dayEd').addEventListener('click', e => {
+    const d = edDay(); if (!d) return;
+    const sb = e.target.closest('#edSt button');
+    if (sb) { setOv(d, { st: sb.dataset.v }); update(); return; }
+    if (e.target.closest('#edReset')) { delete S.ov[d.key]; update(); return; }
+    if (e.target.closest('#edClose')) { editKey = null; update(); }
+  });
+  $('#dayEd').addEventListener('change', e => {
+    const d = edDay(); if (!d) return;
+    if (e.target.id === 'edSwap') { setOv(d, { swap: e.target.checked }); update(); return; }
+    const tm = e.target.closest('#edTm'); if (!tm) return;
+    setOv(d, readTime(tm, 'x')); update();
+  });
+  $('#weeks').addEventListener('click', e => {
+    const b = e.target.closest('.wb'); if (!b) return;
+    const k = b.dataset.w, w = CUR.weeks.find(x => keyOf(x.end) === k); if (!w) return;
+    if (w.hol) { if (w.auto) S.wk[k] = 'off'; else delete S.wk[k]; }
+    else { if (w.auto) delete S.wk[k]; else S.wk[k] = 'on'; }
+    update();
+  });
+  $('#resetCal').addEventListener('click', () => {
+    if (!Object.keys(S.ov).length && !Object.keys(S.wk).length) { toast('이미 시간표 그대로입니다'); return; }
+    if (!confirm('달력에서 고친 날짜와 주휴 선택을 모두 지울까요?')) return;
+    S.ov = {}; S.wk = {}; editKey = null; update(); toast('시간표대로 다시 채웠습니다');
+  });
+
+  /* 5. 수당·공제 */
+  const listBind = (boxId, arr, repaint) => {
+    $(boxId).addEventListener('input', e => {
+      const row = e.target.closest('.xrow'); if (!row) return;
+      const it = S[arr][+row.dataset.i]; if (!it) return;
+      const f = e.target.dataset.f;
+      if (f === 'n') it.n = e.target.value;
+      if (f === 'a') { const pos = e.target.selectionStart, bl = e.target.value.length; it.a = Math.min(num(e.target.value), 100000000); e.target.value = it.a ? comma(it.a) : ''; const p = Math.max(0, pos + e.target.value.length - bl); try { e.target.setSelectionRange(p, p); } catch (er) { /* 무시 */ } }
+      update();
+    });
+    $(boxId).addEventListener('change', e => {
+      if (e.target.dataset.f !== 'tf') return;
+      const row = e.target.closest('.xrow'); const it = S[arr][+row.dataset.i]; if (!it) return;
+      it.tf = e.target.checked; update();
+    });
+    $(boxId).addEventListener('click', e => {
+      const b = e.target.closest('.del'); if (!b) return;
+      S[arr].splice(+b.closest('.xrow').dataset.i, 1); repaint(); update();
+    });
+  };
+  listBind('#extras', 'extras', paintExtras);
+  listBind('#minus', 'minus', paintExtras);
+  $('#extraAdd').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (S.extras.length >= 8) { toast('더 주는 돈은 8개까지 넣을 수 있습니다'); return; }
+    S.extras.push({ n: b.dataset.n, a: 0, tf: !!b.dataset.tf });
+    paintExtras(); update();
+    const rows = document.querySelectorAll('#extras .xrow');
+    const last = rows[rows.length - 1]; if (last) last.querySelector(b.dataset.n ? '.amt' : 'input').focus();
+  });
+  $('#addMinus').addEventListener('click', () => {
+    if (S.minus.length >= 6) { toast('공제 항목은 6개까지 넣을 수 있습니다'); return; }
+    S.minus.push({ n: '가불금', a: 0 }); paintExtras(); update();
+    const rows = document.querySelectorAll('#minus .xrow'); const last = rows[rows.length - 1]; if (last) last.querySelector('.amt').focus();
+  });
+  $('#segDed').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    S.ded = b.dataset.v; S.man = {}; update();
+  });
+  const insChk = (id, k) => $(id).addEventListener('change', e => { S.ins[k] = e.target.checked; update(); });
+  insChk('#cNp', 'np'); insChk('#cHi', 'hi'); insChk('#cEi', 'ei'); insChk('#cTax', 'tax');
+  $('#selFam').addEventListener('change', e => { S.fam = +e.target.value; delete S.man.tax; delete S.man.ltax; update(); });
+  $('#selKids').addEventListener('change', e => { S.kids = +e.target.value; delete S.man.tax; delete S.man.ltax; update(); });
+  $('#cDayEi').addEventListener('change', e => { S.dayEi = e.target.checked; update(); });
+  $('#dedTab').addEventListener('input', e => {
+    const k = e.target.dataset.dk; if (!k) return;
+    const v = e.target.value.replace(/[^0-9]/g, '');
+    if (v === '') delete S.man[k]; else S.man[k] = Math.min(+v, 100000000);
+    e.target.classList.toggle('man', v !== '');
+    update();
+  });
+  $('#dedTab').addEventListener('focusout', () => setTimeout(() => { if (!(document.activeElement && document.activeElement.dataset.dk)) update(); }, 0));
+  $('#dedTab').addEventListener('click', e => {
+    const b = e.target.closest('[data-auto]'); if (!b) return;
+    delete S.man[b.dataset.auto]; update();
+  });
+
+  /* 명세서 */
+  $('#segLog').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    S.log = b.dataset.v !== 'none'; if (S.log) S.logType = b.dataset.v; curPage = 0; paintInfo(); update();
+  });
+  $('#cRcpt').addEventListener('change', e => { S.rcpt = e.target.checked; if (S.rcpt) SIGT = 'w'; paintInfo(); update(); setTimeout(padFit, 30); });
+  $('#cPyck').addEventListener('change', e => { S.pyck = e.target.checked; paintInfo(); update(); setTimeout(padFit, 30); });
+  $('#cBsig').addEventListener('change', e => {
+    S.bsig = e.target.checked; if (S.bsig) SIGT = 'b';
+    paintInfo(); update(); setTimeout(padFit, 30);
+    if (S.bsig) setTimeout(() => $('#rcCard').scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
+  });
+  $('#segSigT').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    SIGT = b.dataset.v; PAD.pts = []; PAD.cur = null; padDraw(); update();
+  });
+  $('#segCal0').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.cal0 = +b.dataset.v; update(); });
+  $('#cHolWork').addEventListener('change', e => { S.holWork = e.target.checked; update(); });
+  /* 한 번에 넣기 */
+  $('#bulkTm').addEventListener('change', bulkHours);
+  $('#bulk').addEventListener('click', e => {
+    const b = e.target.closest('[data-bulk]'); if (!b) return;
+    const t = readTime($('#bulkTm'), 'b');
+    const days = b.dataset.bulk === 'wd' ? [1, 2, 3, 4, 5] : b.dataset.bulk === 'we' ? [6, 0] : ORDER.filter(d => S.sch[d].on);
+    if (!days.length) { toast('켜 둔 요일이 없습니다'); return; }
+    for (const d of days) S.sch[d] = { on: true, s: t.s, e: t.e, b: t.b };
+    if (days.includes(S.whd)) {        /* 주휴일까지 근무가 되면 쉬는 요일로 주휴일을 옮긴다 */
+      const alt = [0, 6, 5, 4, 3, 2, 1].find(k => !S.sch[k].on);
+      if (alt != null) { S.whd = alt; toast('주휴일을 ' + WD[alt] + '요일로 옮겼습니다'); }
+      else toast('7일 모두 근무라 주휴일이 없습니다 — 한 요일은 꺼 주세요', 4200);
+    } else toast(days.map(d => WD[d]).join('·') + ' ' + t.s + '~' + t.e + ' 적용');
+    paintSched(); update();
+  });
+  /* 링크 */
+  $('#doLink').addEventListener('click', async () => {
+    try { await runLink(); $('#linkBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+    catch (e) { toast('링크를 만들지 못했습니다 · ' + ((e && e.message) || e), 4200); }
+  });
+  $('#linkCopy').addEventListener('click', () => {
+    copyText($('#linkUrl').value, '링크를 복사했습니다 · 카톡·문자에 붙여 넣으세요');
+    AD.done('명세서 링크를 복사했습니다(실수령액 ' + won(CUR.net) + '). 링크를 받은 사람은 같은 명세서를 열어 보고 저장할 수 있습니다.', '링크를 복사했습니다');
+  });
+  $('#linkShare').addEventListener('click', async () => {
+    try { await navigator.share({ title: docBase().replace(/_/g, ' '), text: '임금명세서 · ' + DOC.monthLabel, url: $('#linkUrl').value }); }
+    catch (e) { if (!(e && e.name === 'AbortError')) copyText($('#linkUrl').value, '보내기가 막혀 링크를 복사했습니다'); }
+  });
+  $('#linkHide').addEventListener('click', () => $('#linkBox').classList.add('hide'));
+  $('#linkUrl').addEventListener('focus', e => e.target.select());
+  /* 서명판 */
+  const pad = $('#sigPad');
+  pad.addEventListener('pointerdown', e => { e.preventDefault(); pad.setPointerCapture(e.pointerId); PAD.cur = padPoint(e); padDraw(); });
+  pad.addEventListener('pointermove', e => {
+    if (!PAD.cur) return;
+    const p = padPoint(e), c = PAD.cur, n = c.length;
+    if (Math.hypot(p[0] - c[n - 2], p[1] - c[n - 1]) >= 5) { c.push(p[0], p[1]); padDraw(); }
+  });
+  const endStroke = () => { if (PAD.cur) { PAD.pts.push(PAD.cur); PAD.cur = null; padDraw(); } };
+  pad.addEventListener('pointerup', endStroke); pad.addEventListener('pointercancel', endStroke);
+  $('#sigClear').addEventListener('click', () => { PAD.pts = []; PAD.cur = null; padDraw(); });
+  $('#sigOk').addEventListener('click', () => {
+    if (!PAD.pts.length) { toast('서명판에 먼저 서명해 주세요'); return; }
+    const sig = { pts: PAD.pts.map(st => st.slice()), at: Date.now(), key: docKey(CUR) };
+    if (SIGT === 'b') S.bs = sig;
+    else {
+      if (!S.name.trim()) { toast('근로자 이름이 비어 있습니다'); return; }
+      S.rc = sig;
+    }
+    PAD.pts = []; padDraw();
+    update();
+    toast('서명을 넣었습니다 · 명세서 「' + (SIGT === 'b' ? '지급 확인' : '수령 확인') + '」 칸을 확인하세요', 3200);
+    if (SHARED) paintShared();
+  });
+  $('#sigDel').addEventListener('click', () => { if (SIGT === 'b') S.bs = null; else S.rc = null; update(); if (SHARED) paintShared(); });
+  $('#rcDone').addEventListener('click', async e => {
+    if (!e.target.closest('#sigSend')) return;
+    const url = await runLink();
+    if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !IA.on) {
+      try { await navigator.share({ title: '서명한 임금명세서', url }); return; } catch (er) { if (er && er.name === 'AbortError') return; }
+    }
+    copyText(url, '서명한 링크를 복사했습니다 · 사장님께 카톡으로 보내세요');
+  });
+  /* 링크로 받은 명세서 */
+  $('#shSign').addEventListener('click', () => { $('#rcCard').scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(padFit, 400); });
+  $('#shEdit').addEventListener('click', () => {
+    if (!confirm('이 링크 내용으로 고쳐 쓰기를 시작할까요?\n이 브라우저에 저장돼 있던 이전 입력은 이 내용으로 바뀝니다.' + (S.rc || S.bs ? '\n고치면 서명은 무효가 됩니다.' : ''))) return;
+    SHARED = null;
+    document.body.classList.remove('shared');
+    $('#form').removeAttribute('inert');
+    $('#shBar').classList.add('hide');
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (er) { /* 무시 */ }
+    paintInfo(); paintPeriod(); paintSched(); paintBulk(); paintExtras(); paintStaff(); update();
+    toast('이제 고쳐 쓸 수 있습니다 · 이 브라우저에 저장됩니다');
+  });
+  $('#pvPrev').addEventListener('click', () => { if (curPage > 0) { curPage--; drawPreview(); } });
+  $('#pvNext').addEventListener('click', () => { curPage++; drawPreview(); });
+  $('#dlPdf').addEventListener('click', () => runSave('pdf'));
+  $('#dlPng').addEventListener('click', () => runSave('png'));
+  $('#doPrint').addEventListener('click', doPrint);
+  $('#doShare').addEventListener('click', runShare);
+  try {
+    const f = new File([new Blob(['x'], { type: 'image/png' })], 'a.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [f] }) && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !IA.on) { $('#doShare').classList.remove('hide'); $('#actions').classList.add('odd'); }
+  } catch (e) { /* 지원 안 함 */ }
+
+  $('#doneHide').addEventListener('click', () => AD.hideDone());
+  $('#anchorX').addEventListener('click', () => { AD.closed = true; AD.sync(true); });
+  const goOut = () => { const u = externalUrl(); if (u) { location.href = u; return; } copyAddr(true); iaCopied(); };
+  $('#iaGo').addEventListener('click', goOut);
+  $('#iaGo2').addEventListener('click', goOut);
+  $('#doneGo').addEventListener('click', goOut);
+  $('#iaStay').addEventListener('click', () => {
+    lockInApp(false);
+    AD.init();
+    updateMbar();
+    toast('저장은 안 됩니다. 명세서를 저장하려면 위쪽 「' + $('#iaGo').textContent + '」를 눌러 주세요.', 5200);
+  });
+  $('#iaX').addEventListener('click', () => {
+    document.body.classList.remove('inapp');
+    try { sessionStorage.setItem('hourly_payslip.iahide', '1'); } catch (e) { /* 무시 */ }
+  });
+
+  window.addEventListener('scroll', updateMbar, { passive: true });
+  let rzT;
+  window.addEventListener('resize', () => { updateMbar(); clearTimeout(rzT); rzT = setTimeout(() => { schedulePreview(); padFit(); }, 120); }, { passive: true });
+  for (const id of ['#form', '#side']) {
+    $(id).addEventListener('focusin', updateMbar);
+    $(id).addEventListener('focusout', () => setTimeout(updateMbar, 0));
+  }
+  $('#mbarGo').addEventListener('click', () => $('#pvCard').scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedulePreview);
+
+  const start = () => {
+    paintInfo(); paintPeriod(); paintSched(); paintBulk(); paintExtras(); paintStaff();
+    /* 링크로 받은 명세서는 저장만 막히고 보기·서명은 되므로, 앱 안이어도 막는 창을 띄우지 않는다 */
+    if (SHARED) { if (IA.on) { initInApp(); lockInApp(false); } } else initInApp();
+    if (!locked()) AD.init();
+    update();
+    if (SHARED) paintShared();
+    setTimeout(padFit, 60);
+  };
+  const m = location.hash.match(/^#p=([A-Za-z0-9_-]+)/);
+  if (!m) { start(); return; }
+  unpackLink(m[1]).then(p => {
+    S = Object.assign(freshState(), p.s);
+    SHARED = { net: p.n };
+    document.body.classList.add('shared');
+    $('#form').setAttribute('inert', '');
+  }).catch(() => toast('링크를 읽지 못했습니다 — 주소가 잘리지 않았는지 확인하세요', 6000)).then(start);
+}
+function paintShared() {
+  if (!SHARED || !CUR) return;
+  const rc = sigOf(CUR), who = S.name.trim() || '근로자';
+  const bar = $('#shBar');
+  bar.classList.remove('hide');
+  const moved = SHARED.net != null && SHARED.net !== CUR.net;
+  bar.classList.toggle('warn', moved);
+  $('#shT').textContent = rc ? '✔ ' + who + ' 님이 ' + fmtAt(rc.at) + '에 수령 확인 서명' : '링크로 받은 임금명세서 · ' + DOC.monthLabel;
+  $('#shS').textContent = moved
+    ? '링크를 만든 때(실수령액 ' + won(SHARED.net) + ')와 지금 계산이 다릅니다. 도구 규칙이 바뀌었을 수 있으니 만든 사람에게 확인하세요.'
+    : (S.biz.trim() || '사업장') + ' · ' + who + ' · 실수령액 ' + won(CUR.net) + (bsOf(CUR) ? ' · 사업주 서명 있음' : '') + ' — 보기 전용이고 이 브라우저에는 저장되지 않습니다.';
+  $('#shSign').classList.toggle('hide', !S.rcpt || !!rc);
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+</script>
+</body>
+</html>
