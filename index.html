@@ -450,6 +450,7 @@ footer b{color:var(--fg)}
      ║  한 화면에 4곳 — 모바일 ① 맨 위 ③ 본문 ④ 완료 카드 ⑤ 하단 오버형      ║
      ║              PC   ① 맨 위 ② 미리보기 위 ③ 본문 ④ 완료 카드            ║
      ╚══════════════════════════════════════════════════════════════════════╝ -->
+<div class="ad-slot ad-top" id="ad-top"></div>
 
 <!-- 네이버·카카오 앱 안에서 열렸을 때만 보이는 띠 (body.inapp) -->
 <div class="iabar" id="iabar">
@@ -615,6 +616,8 @@ footer b{color:var(--fg)}
 </main>
 
 <aside class="side" id="side">
+  <!-- 광고 자리 ② PC 미리보기 카드 바로 위 320×50 · 좁은 화면에서는 숨깁니다 -->
+  <div class="ad-slot" id="ad-side"></div>
   <section class="card" id="pvCard">
     <h2><span>임금명세서</span><span class="h2r" id="pvState"></span></h2>
     <div class="net"><div class="k">실수령액<small id="netSub"></small></div><div class="v" id="netV">0원</div></div>
@@ -680,10 +683,14 @@ footer b{color:var(--fg)}
     </ol>
     <p class="dwarn hide" id="doneInapp">파일이 안 보이나요? 앱 안 브라우저는 내려받기가 막혀 있습니다.
       <button type="button" id="doneGo">다른 브라우저로 열기</button></p>
+    <div id="doneAd"><span class="ad-lab">광고</span><div class="ad-slot" id="ad-done"></div></div>
   </section>
 </aside>
 </div>
 
+<!-- 광고 자리 ③ 본문 중간 320×100 — 입력 카드와 명세서가 다 끝난 자리에 둡니다(입력 중 광고 금지 조항).
+     버튼·입력칸에서 18px 이상 떼어 놓습니다. 모바일·PC 가 같은 자리라 단위 ID 하나면 됩니다 -->
+<div class="ad-slot" id="ad-mid"></div>
 
 <section class="card">
   <h2><span>이렇게 계산합니다</span></h2>
@@ -848,6 +855,11 @@ footer b{color:var(--fg)}
     <p class="iafine"><button type="button" id="iaStay">저장은 안 해도 돼요 · 계산만 볼게요</button></p>
   </div>
 </div>
+
+<!-- 광고 자리 ⑤ 하단 오버형 320×50(모바일) — 읽는 구간에서만 올라오고, 입력 중·미리보기 중·창이 열렸을 때는
+     내려가 있습니다. 바 높이만큼 본문 아래 여백을 늘려 아무것도 가리지 않습니다 -->
+<div id="anchor"><span class="amk">광고</span><div class="ad-slot" id="ad-anchor"></div>
+  <button class="axl" id="anchorX" type="button" aria-label="광고 닫기">✕</button></div>
 
 <div id="mbar"><div class="in"><div class="k">실수령액<b id="mbarTxt">0원</b></div><button class="go" id="mbarGo" type="button">명세서 ↓</button></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
