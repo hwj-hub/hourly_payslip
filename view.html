@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0f766e">
 <meta name="robots" content="noindex">
 <title>임금명세서 보기 · 보기 전용</title>
-<meta name="description" content="링크로 받은 임금명세서를 보는 화면입니다. 내용은 고칠 수 없고, PDF·이미지로 저장하거나 수령 확인 서명을 할 수 있습니다.">
+<meta name="description" content="링크로 받은 임금명세서를 보는 화면입니다. 내용은 고칠 수 없고, PDF·이미지로 저장하거나 인쇄할 수 있습니다.">
 <meta property="og:title" content="임금명세서가 도착했습니다">
 <meta property="og:description" content="링크를 열면 명세서를 보고 PDF·이미지로 저장할 수 있습니다. 내용은 서버에 저장되지 않습니다.">
 <meta property="og:type" content="website">
@@ -73,10 +73,6 @@ body{background:var(--bg);color:var(--fg);line-height:1.55;word-break:keep-all;o
 .pages canvas{display:block;width:100%;height:auto;background:#fff;box-shadow:0 2px 10px -4px rgba(0,0,0,.35)}
 .fine{font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.7;margin:8px 0 0}
 .fine b{color:var(--fg)}
-.pad{position:relative;margin-top:10px;border:1.5px dashed #b8c9c4;border-radius:12px;background:#fff;touch-action:none;overflow:hidden}
-.pad canvas{display:block;width:100%;height:160px;cursor:crosshair;touch-action:none}
-.pad span{position:absolute;left:12px;bottom:8px;font-size:11.5px;font-weight:700;color:#98aaa5;pointer-events:none}
-.pad.has span{display:none}
 .note{border-radius:11px;padding:10px 12px;font-size:13px;font-weight:700;line-height:1.65;margin-top:10px;background:var(--okbg);color:var(--ok)}
 .iabar{display:flex;align-items:center;gap:10px;margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--warnbg);font-size:12.5px;font-weight:700;line-height:1.5}
 .iabar span{flex:1 1 auto}
@@ -133,23 +129,6 @@ footer a{color:var(--accent);font-weight:800}
     <section class="card hide" id="doneCard">
       <h2><span id="doneTitle">저장했습니다</span><button class="mini" id="doneHide" type="button">닫기</button></h2>
       <p class="dmsg" id="doneMsg"></p>
-    </section>
-
-    <section class="card hide" id="rcCard">
-      <h2><span>수령 확인 · 근로자 서명</span></h2>
-      <p class="fine" style="margin-top:0">명세서를 받고 금액을 확인했다면 아래에 손가락으로 서명하세요. 서명은 명세서 「수령 확인」 칸에 들어가고,
-        <b>서명한 링크를 보낸 사람에게 돌려보내면</b> 확인이 끝납니다. 명세서 내용은 바뀌지 않습니다.</p>
-      <div class="pad" id="pad"><canvas id="sigPad" aria-label="서명판"></canvas><span>여기에 서명하세요</span></div>
-      <div class="tools">
-        <button class="mini" id="sigClear" type="button">지우기</button>
-        <button class="mini pri" id="sigOk" type="button">서명 넣기</button>
-      </div>
-    </section>
-
-    <section class="card hide" id="sendCard">
-      <h2><span>서명했습니다</span></h2>
-      <p class="dmsg" id="sendMsg"></p>
-      <div class="tools"><button class="mini pri" id="sigSend" type="button">서명한 링크 보내기</button><button class="mini" id="sigUndo" type="button">서명 지우고 다시</button></div>
     </section>
 
     <section class="card">
@@ -554,7 +533,7 @@ function checks(C) {
     const rc = sigOf(C);
     if (rc) out.push(['ok', '수령 확인 서명 · ' + fmtAt(rc.at)]);
     else if (S.rc) out.push(['warn', '서명한 뒤 명세서 내용이 바뀌어 서명이 빠졌습니다', '바뀐 명세서로 다시 서명을 받으세요']);
-    else out.push(['info', '근로자 수령 확인 서명 전', '아래 서명판에서 받거나 링크를 보내 근로자가 서명하게 하세요']);
+    else out.push(['info', '근로자 수령 확인 서명 전', '명세서를 건넬 때 아래 서명판에 받으세요']);
   }
   if (!S.name.trim()) out.push(['warn', '근로자 이름이 비어 있습니다', '이름·생년월일(또는 사원번호)은 명세서 필수 기재사항입니다']);
   return out;
@@ -605,18 +584,20 @@ function paint(ctx, C, D, pageNo, s, dense) {
   const ink = '#111', sub = '#555', line = '#6b6b6b', thin = '#bdbdbd', headBg = '#eef4f2', acc = '#0f5f58';
   const X0 = MG, X1 = PW - MG, W = X1 - X0;
   const txt = (t, x, y, pt, w, col, align) => {
-    if (!ctx) return;
+    if (!live()) return;
     fnt(ctx, pt, w); ctx.fillStyle = col || ink; ctx.textAlign = align || 'left'; ctx.fillText(t, x, y);
   };
   const rect = (x, y, w, h, fill, stroke, lw) => {
-    if (!ctx) return;
+    if (!live()) return;
     if (fill) { ctx.fillStyle = fill; ctx.fillRect(x, y, w, h); }
     if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 0.2; ctx.strokeRect(x, y, w, h); }
   };
-  const hline = (x, y, w, col, lw) => { if (!ctx) return; ctx.strokeStyle = col; ctx.lineWidth = lw || 0.2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.stroke(); };
+  const hline = (x, y, w, col, lw) => { if (!live()) return; ctx.strokeStyle = col; ctx.lineWidth = lw || 0.2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.stroke(); };
   const mctx = ctx || MCTX;
+  let drawOn = true;
+  const live = () => !!ctx && drawOn;
   let y = MG;
-  const page1 = () => {
+  const page1head = () => {
     /* 제목 */
     txt('임 금 명 세 서', PW / 2, y + 9, 22, 800, ink, 'center');
     y += dense ? 13.5 : 15;
@@ -651,7 +632,9 @@ function paint(ctx, C, D, pageNo, s, dense) {
     y += 14;
     if (!C.five) { txt('상시 근로자 5명 미만 사업장 — 연장·야간·휴일 가산수당 적용 제외(근로기준법 시행령 별표 1)', X0, y + 4.2, 8, 500, sub); y += 5.5; }
     y += dense ? 2.5 : 4;
-    /* 표 — 지급·공제 */
+  };
+  /* 표 — 지급·공제 · 실수령액 · 확인 칸 */
+  const page1body = () => {
     const table = (title, rows, totalLabel, total, empty) => {
       const c1 = 32, c3 = 30, c2 = W - c1 - c3;
       txt(title, X0, y + 4.2, 11, 800, ink);
@@ -667,7 +650,7 @@ function paint(ctx, C, D, pageNo, s, dense) {
         fnt(mctx, 8.8, 500);
         const lines = r.how ? wrap(mctx, r.how, c2 - 5) : [''];
         const h = Math.max(7 * g, (dense ? 2 : 3) + lines.length * 4.1);
-        if (ctx) { ctx.strokeStyle = thin; ctx.lineWidth = 0.15; }
+        if (live()) { ctx.strokeStyle = thin; ctx.lineWidth = 0.15; }
         rect(X0, y, W, h, null, null);
         hline(X0, y + h, W, thin, 0.15);
         txt(r.n, X0 + 3, y + h / 2 + 1.4, 9.8, 700, ink);
@@ -679,16 +662,16 @@ function paint(ctx, C, D, pageNo, s, dense) {
       rect(X0, y, W, th, headBg, line, 0.3);
       txt(totalLabel, X0 + 3, y + th * 0.7, 10, 800, ink);
       txt(comma(total), X1 - 3, y + th * 0.7, 11, 800, ink, 'right');
-      if (ctx) { ctx.strokeStyle = line; ctx.lineWidth = 0.3; ctx.beginPath(); ctx.moveTo(X0, y - 0); ctx.lineTo(X0, y); ctx.stroke(); }
+      if (live()) { ctx.strokeStyle = line; ctx.lineWidth = 0.3; ctx.beginPath(); ctx.moveTo(X0, y - 0); ctx.lineTo(X0, y); ctx.stroke(); }
       y += th;
     };
     const top = y;
     table('지급 내역', C.items.map(it => ({ n: it.n, a: it.a, how: it.how })), '지급액 계 (임금 총액)', C.pay, '지급 항목 없음');
-    if (ctx) { ctx.strokeStyle = line; ctx.lineWidth = 0.25; ctx.strokeRect(X0, top + 6.5, W, y - top - 6.5); }
+    if (live()) { ctx.strokeStyle = line; ctx.lineWidth = 0.25; ctx.strokeRect(X0, top + 6.5, W, y - top - 6.5); }
     y += dense ? 3 : 5;
     const top2 = y;
     table('공제 내역', C.deds.map(d => ({ n: d.n, a: d.a, how: d.how + (d.man ? (d.how ? ' · ' : '') + '직접 입력' : '') })), '공제액 계', C.dedSum, '공제 없음');
-    if (ctx) { ctx.strokeStyle = line; ctx.lineWidth = 0.25; ctx.strokeRect(X0, top2 + 6.5, W, y - top2 - 6.5); }
+    if (live()) { ctx.strokeStyle = line; ctx.lineWidth = 0.25; ctx.strokeRect(X0, top2 + 6.5, W, y - top2 - 6.5); }
     y += dense ? 3 : 5;
     /* 실수령액 */
     const nh = dense ? 11 : 13, nd = dense ? 1 : 0;
@@ -718,12 +701,12 @@ function paint(ctx, C, D, pageNo, s, dense) {
       txt((k ? '확인일  ' : '지급일  ') + (k ? (RC ? fmtAt(RC.at) : blank) : (D.payLabel || blank)), bx + 3, by + 15.1, 8.4, 500, '#333');
       if (!k && S.bsig) {                     /* 사업주 손 서명 — (인) 자리에 */
         fit(who, bx + bw - 31, by + 19.3, 9.4, 700, ink, 'right', bw - 36);
-        if (BS && ctx) drawSig(ctx, BS.pts, bx + bw - 29, by + 11.6, 26, 8.8, '#1e3a8a', 0.42);
+        if (BS && live()) drawSig(ctx, BS.pts, bx + bw - 29, by + 11.6, 26, 8.8, '#1e3a8a', 0.42);
         else txt('(서명)', bx + bw - 5, by + 19.3, 8.6, 500, '#9a9a9a', 'right');
       } else if (!k) fit(who + '   (인)', bx + bw - 3, by + 19.3, 9.4, 700, ink, 'right', bw - 6);
       else {
         fit('근로자  ' + (S.name.trim() || '            '), bx + bw - 31, by + 19.3, 9.4, 700, ink, 'right', bw - 36);
-        if (RC && ctx) drawSig(ctx, RC.pts, bx + bw - 29, by + 11.6, 26, 8.8, '#1e3a8a', 0.42);
+        if (RC && live()) drawSig(ctx, RC.pts, bx + bw - 29, by + 11.6, 26, 8.8, '#1e3a8a', 0.42);
         else txt('(서명)', bx + bw - 5, by + 19.3, 8.6, 500, '#9a9a9a', 'right');
       }
     });
@@ -758,7 +741,7 @@ function paint(ctx, C, D, pageNo, s, dense) {
           d.st === 'work' || d.st === 'leave' ? d.s + '~' + d.e + (d.next ? '+' : '') : '—',
           d.st === 'work' ? (d.b ? d.b + '분' : '—') : '',
           d.st === 'work' ? hm(d.mins) : d.st === 'leave' ? hm(d.mins) : '',
-          d.st === 'abs' ? '결근' : d.st === 'leave' ? '연차' : d.hol ? d.hol.replace(' 연휴', '').slice(0, 6) + (d.paidHol ? '·유급' : '') : d.ot ? '연장 ' + hShort(d.ot) : d.swap ? '근무일 바꿈' : ''
+          d.st === 'abs' ? '결근' : d.st === 'leave' ? '연차' : d.hol ? d.hol.replace(' 연휴', '').replace('대체공휴일', '대체').slice(0, 5) + (d.paidHol ? '·유급' : '') : d.ot ? '연장 ' + hShort(d.ot) : d.swap ? '근무일 바꿈' : ''
         ];
         cells.forEach((v, k) => {
           txt(v, k === 4 ? cx + 1.5 : cx + cols[k][1] / 2, yy + 3.1, k === 3 ? 7.8 : 7.6, k === 3 ? 700 : 500, k === 0 && red ? '#c62828' : k === 4 && d.st === 'abs' ? '#c62828' : col, k === 4 ? 'left' : 'center');
@@ -767,7 +750,7 @@ function paint(ctx, C, D, pageNo, s, dense) {
         hline(x0, yy + RH, cw2, thin, 0.12);
         yy += RH;
       }
-      if (ctx) { ctx.strokeStyle = line; ctx.lineWidth = 0.2; ctx.strokeRect(x0, y, cw2, 6 + part.length * RH); }
+      if (live()) { ctx.strokeStyle = line; ctx.lineWidth = 0.2; ctx.strokeRect(x0, y, cw2, 6 + part.length * RH); }
     }
     y += 6 + half * RH + 4;
   };
@@ -798,7 +781,7 @@ function paint(ctx, C, D, pageNo, s, dense) {
       if (!d.inP) rect(cx, cy, cw, CH, '#f3f3f3', null);
       else if (d.st === 'abs') rect(cx, cy, cw, CH, '#fdecec', null);
       else if (d.st === 'work' || d.st === 'leave') rect(cx, cy, cw, CH, '#eef7f4', null);
-      if (ctx) { ctx.strokeStyle = thin; ctx.lineWidth = 0.15; ctx.strokeRect(cx, cy, cw, CH); }
+      if (live()) { ctx.strokeStyle = thin; ctx.lineWidth = 0.15; ctx.strokeRect(cx, cy, cw, CH); }
       const red = d.hol || d.dow === 0;
       txt((t.d === 1 || i === 0 ? t.m + '/' : '') + t.d, cx + 1.4, cy + 3.1, 7, 700, !d.inP ? '#aaa' : red ? '#c62828' : d.dow === 6 ? '#1d4ed8' : '#333');
       if (d.hol && d.inP) txt(d.hol.replace(' 연휴', '').replace('대체공휴일', '대체'), cx + cw - 1.2, cy + 3, 5.8, 600, '#c62828', 'right');
@@ -812,7 +795,7 @@ function paint(ctx, C, D, pageNo, s, dense) {
       else if (d.paidHol) txt('유급 ' + hm(d.paidHol), cx + cw / 2, mid, 7, 700, '#047857', 'center');
     });
     const rows = Math.ceil(list.length / 7);
-    if (ctx) { ctx.strokeStyle = line; ctx.lineWidth = 0.25; ctx.strokeRect(X0, y - 5.5, W, 5.5 + rows * CH); }
+    if (live()) { ctx.strokeStyle = line; ctx.lineWidth = 0.25; ctx.strokeRect(X0, y - 5.5, W, 5.5 + rows * CH); }
     y += rows * CH + 3;
   };
   const foot = () => {
@@ -828,11 +811,16 @@ function paint(ctx, C, D, pageNo, s, dense) {
   const need = () => isCal ? calH() : logH(D.log.length);
   const draw = t => isCal ? drawCal(t) : drawLog(D.log, t);
   if (pageNo === 0) {
-    page1();
-    const limit = PH - MG - 7;
-    if (wantLog && y + need() > limit) { RH = 3.75; CH = 8.4; }   /* 한 장에 넣으려고 한 번 더 좁혀 본다 */
-    if (wantLog && y + need() <= limit) draw('근무 기록');
-    else if (wantLog) out.pages = 2;
+    page1head();
+    const limit = PH - MG - 7, y0 = y;
+    drawOn = false; page1body(); const bodyH = y - y0; y = y0; drawOn = true;   /* 몸통 높이만 재 본다 */
+    const fits = () => wantLog && y0 + need() + bodyH <= limit;
+    if (wantLog && !fits()) { RH = 3.75; CH = 8.4; }   /* 한 장에 넣으려고 한 번 더 좁혀 본다 */
+    if (fits()) { draw('근무 기록'); page1body(); }     /* 근무 기록은 지급 내역 위에 */
+    else {
+      if (wantLog) { txt('근무 기록은 2쪽에 있습니다', X1, y0 + 4.2, 8.4, 700, sub, 'right'); out.pages = 2; }
+      page1body();
+    }
     foot();
   } else {
     RH = 4.6; CH = 16;
@@ -1200,7 +1188,7 @@ function paintRc(C) {
     return;
   }
   $('#rcTitle').textContent = '수령 확인 · 근로자 서명';
-  $('#rcDesc').innerHTML = '근로자가 명세서를 받고 금액을 확인했다는 서명입니다. 이 화면에서 바로 받거나, <b>링크 만들기</b>로 보내 근로자가 자기 휴대폰에서 서명한 뒤 링크를 돌려보내게 할 수 있습니다.';
+  $('#rcDesc').innerHTML = '근로자가 명세서를 받고 금액을 확인했다는 서명입니다. 명세서를 건넬 때 <b>이 서명판에 손가락으로</b> 받으세요. 서명을 넣은 뒤 저장하거나 링크로 보내면 서명이 들어간 명세서가 그대로 전달됩니다(링크로 여는 보기 화면에서는 서명할 수 없습니다).';
   const rc = sigOf(C);
   $('#rcState').textContent = rc ? '서명 완료' : S.rc ? '서명 무효' : '';
   $('#rcState').style.color = rc ? 'var(--ok)' : S.rc ? 'var(--warn)' : '';
@@ -1259,7 +1247,7 @@ async function runLink() {
   $('#linkShare').classList.toggle('hide', !(navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)));
   $('#linkNote').innerHTML = '링크 안에 이 명세서 내용이 모두 들어 있습니다(' + comma(url.length) + '자). <b>서버에 저장되지 않고</b>, 링크를 열면 <b>보기 전용 화면</b>(view.html)에서 같은 명세서를 보고 저장할 수 있습니다. 입력칸이 없어 고칠 수는 없습니다. ' +
     '받을 사람에게만 보내고, 보관하려면 메모나 카톡 「나와의 채팅」에 붙여 두세요.' +
-    (rc ? ' <b>근로자 서명이 들어 있는 링크</b>입니다.' : S.rcpt ? ' 근로자가 링크를 열어 서명한 뒤 「서명한 링크」를 돌려보내면 수령 확인이 끝납니다.' : '');
+    (rc ? ' <b>근로자 서명이 들어 있는 링크</b>입니다.' : '');
   return url;
 }
 
@@ -1581,11 +1569,11 @@ function iaCopied() {
 /* ══════════════════════════════════════════════════════════════
    보기 전용 페이지 — 링크(#p=…)에 담긴 명세서를 그리기만 한다.
    입력칸이 없어서 내용을 고칠 수 없고, 어디에도 저장·전송하지 않는다.
-   할 수 있는 것: PDF·이미지 저장(휴대폰은 카톡 공유 창), 인쇄, 근로자 수령 확인 서명 → 서명한 링크 보내기.
+   할 수 있는 것: PDF·이미지 저장(휴대폰은 카톡 공유 창), 인쇄, 링크 복사. 서명도 할 수 없다(작성기에서 넣은 서명은 보인다).
    계산·그리기·PDF 는 본 도구(index.html)와 같은 코드라 같은 링크면 같은 명세서가 나온다.
    ══════════════════════════════════════════════════════════════ */
 function updateMbar() { /* 보기 페이지에는 아래 막대가 없다 */ }
-let V = { net: null, signedHere: false };
+let V = { net: null };
 
 function vPaint() {
   CUR = calc(); DOC = docModel(CUR);
@@ -1601,11 +1589,8 @@ function vPaint() {
   if (bs) st.push(['ok', '사업주 서명 있음 · ' + fmtAt(bs.at)]);
   if (rc) st.push(['ok', '✔ ' + who + ' 님 수령 확인 서명 · ' + fmtAt(rc.at)]);
   else if (S.rc) st.push(['warn', '서명한 뒤 명세서 내용이 달라져 서명이 무효입니다.']);
-  else if (S.rcpt) st.push(['', '수령 확인 서명 전입니다. 아래 서명판에서 서명할 수 있습니다.']);
+  else if (S.rcpt) st.push(['', '수령 확인 서명 전 명세서입니다.']);
   $('#vStat').innerHTML = st.map(s => '<li class="' + s[0] + '">' + escH(s[1]) + '</li>').join('');
-  $('#rcCard').classList.toggle('hide', !S.rcpt || !!rc);
-  $('#sendCard').classList.toggle('hide', !(rc && V.signedHere));
-  if (rc && V.signedHere) $('#sendMsg').textContent = who + ' 님 서명이 명세서 「수령 확인」 칸에 들어갔습니다(' + fmtAt(rc.at) + '). 아래 단추로 서명한 링크를 명세서를 보낸 사람에게 돌려보내세요.';
   drawPages();
 }
 
@@ -1624,7 +1609,6 @@ function drawPages() {
   }
   $('#vPages').textContent = 'A4 ' + n + '쪽';
 }
-async function vLink() { return viewUrl(true) + '#p=' + await packLink(); }
 
 function viewInit() {
   const m = location.hash.match(/^#p=([A-Za-z0-9_-]+)/);
@@ -1643,48 +1627,15 @@ function viewInit() {
     $('#vMain').classList.remove('hide');
     vPaint();
     pngLabel();
-    setTimeout(padFit, 60);
-  }).catch(e => { console.error(e); fail(); });
+  }).catch(e => { console.warn(e); fail(); });
 
   $('#dlPdf').addEventListener('click', () => runSave('pdf'));
   $('#dlPng').addEventListener('click', sendPng);
   $('#doPrint').addEventListener('click', doPrint);
   $('#doneHide').addEventListener('click', () => DONE.hide());
   $('#copyHere').addEventListener('click', () => copyText(location.href, '이 명세서 링크를 복사했습니다 · 메모나 카톡 「나와의 채팅」에 붙여 두면 보관됩니다'));
-  /* 서명판 */
-  const pad = $('#sigPad');
-  pad.addEventListener('pointerdown', e => { e.preventDefault(); pad.setPointerCapture(e.pointerId); PAD.cur = padPoint(e); padDraw(); });
-  pad.addEventListener('pointermove', e => {
-    if (!PAD.cur) return;
-    const p = padPoint(e), c = PAD.cur, n = c.length;
-    if (Math.hypot(p[0] - c[n - 2], p[1] - c[n - 1]) >= 5) { c.push(p[0], p[1]); padDraw(); }
-  });
-  const endStroke = () => { if (PAD.cur) { PAD.pts.push(PAD.cur); PAD.cur = null; padDraw(); } };
-  pad.addEventListener('pointerup', endStroke); pad.addEventListener('pointercancel', endStroke);
-  $('#sigClear').addEventListener('click', () => { PAD.pts = []; PAD.cur = null; padDraw(); });
-  $('#sigOk').addEventListener('click', async () => {
-    if (!PAD.pts.length) { toast('서명판에 먼저 서명해 주세요'); return; }
-    S.rc = { pts: PAD.pts.map(st => st.slice()), at: Date.now(), key: docKey(CUR) };
-    PAD.pts = []; padDraw();
-    V.signedHere = true;
-    vPaint();
-    try { history.replaceState(null, '', location.pathname + location.search + '#p=' + await packLink()); } catch (e) { /* 주소 바꾸기 실패는 무시 */ }
-    toast('서명을 넣었습니다 · 아래 「서명한 링크 보내기」를 누르세요', 3600);
-    setTimeout(() => $('#sendCard').scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
-  });
-  $('#sigUndo').addEventListener('click', async () => {
-    S.rc = null; V.signedHere = false; vPaint(); setTimeout(padFit, 30);
-    try { history.replaceState(null, '', location.pathname + location.search + '#p=' + await packLink()); } catch (e) { /* 무시 */ }
-  });
-  $('#sigSend').addEventListener('click', async () => {
-    const url = await vLink();
-    if (IS_MOBILE && navigator.share && !IA.on) {
-      try { await navigator.share({ title: '서명한 임금명세서', url }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
-    }
-    copyText(url, '서명한 링크를 복사했습니다 · 명세서를 보낸 분께 카톡으로 붙여 보내세요');
-  });
   let rzT = 0;
-  window.addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => { if (CUR) drawPages(); padFit(); }, 150); }, { passive: true });
+  window.addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => { if (CUR) drawPages(); }, 150); }, { passive: true });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (CUR) drawPages(); });
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', viewInit); else viewInit();
