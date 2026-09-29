@@ -291,6 +291,7 @@ header{text-align:center;padding:14px 0 2px}
 body.shared #form{opacity:.88}
 @media (max-width:979px){body.shared .side{order:0}}
 /* ── 수령 확인 서명판 ── */
+#pvCard #rcCard{margin:12px 0 0;box-shadow:none;background:var(--card2);padding:14px}
 .pad{position:relative;margin-top:10px;border:1.5px dashed #b8c9c4;border-radius:12px;background:#fff;touch-action:none;overflow:hidden}
 .pad canvas{display:block;width:100%;height:150px;cursor:crosshair;touch-action:none}
 .pad span{position:absolute;left:12px;bottom:8px;font-size:11.5px;font-weight:700;color:#98aaa5;pointer-events:none}
@@ -407,7 +408,6 @@ footer b{color:var(--fg)}
 <body>
 <div class="wrap">
 
-
 <!-- 네이버·카카오 앱 안에서 열렸을 때만 보이는 띠 (body.inapp) -->
 <div class="iabar" id="iabar">
   <div class="ia-t"><span id="iaMsg">앱 안에서 열려서 PDF·이미지 저장이 안 될 수 있어요.</span>
@@ -426,7 +426,6 @@ footer b{color:var(--fg)}
     <span class="badge gray">PDF · 이미지 · 인쇄</span>
   </div>
 </header>
-
 
 <div class="layout">
 <main id="form">
@@ -587,17 +586,6 @@ footer b{color:var(--fg)}
       <div>공제액 계<b id="sDed">0원</b></div>
       <div>근로시간<b id="sHrs">0시간</b></div>
     </div>
-    <div class="actions" id="actions">
-      <button class="btn pri" id="dlPdf" type="button">PDF로 저장<i>A4 한 장</i></button>
-      <button class="btn" id="dlPng" type="button">이미지로 저장<i>PNG · 카톡 전송용</i></button>
-      <button class="btn" id="doLink" type="button">링크 만들기<i>보내기 · 보관</i></button>
-      <button class="btn" id="doPrint" type="button">인쇄<i>A4</i></button>
-    </div>
-    <div class="linkbox hide" id="linkBox">
-      <input type="text" id="linkUrl" readonly aria-label="명세서 링크">
-      <div class="tools"><button class="mini pri" id="linkCopy" type="button">링크 복사</button><button class="mini hide" id="linkShare" type="button">보내기</button><button class="mini" id="linkHide" type="button">닫기</button></div>
-      <p class="fine" id="linkNote"></p>
-    </div>
     <div class="row" style="margin-top:12px">
       <div class="lab">근무 기록<span class="hint">명세서 아래에 붙는 날짜별 기록</span></div>
       <div class="seg sm" id="segLog">
@@ -609,26 +597,37 @@ footer b{color:var(--fg)}
     <label class="chk"><input type="checkbox" id="cPyck"><span>지급 확인란 넣기 (사업주)<i>「위와 같이 지급합니다」 · 지급일 · 사업장 이름과 (인)</i></span></label>
     <label class="chk" id="rowBsig" style="padding-left:29px"><input type="checkbox" id="cBsig"><span>사업주도 서명하기<i>(인) 자리에 도장 대신 손 서명 · 아래 서명판에서 「사업주 서명」 선택</i></span></label>
     <label class="chk"><input type="checkbox" id="cRcpt"><span>수령 확인란 넣기 (근로자)<i>근로자가 받았다는 서명 칸 · 아래에서 손가락으로 서명</i></span></label>
+    <!-- 서명판 — 명세서 미리보기 바로 위(서명하면 바로 아래 미리보기에 보인다) -->
+    <section class="card hide" id="rcCard">
+      <h2><span id="rcTitle">수령 확인 · 근로자 서명</span><span class="h2r" id="rcState"></span></h2>
+      <div class="seg sm hide" id="segSigT" style="margin-bottom:10px">
+        <button type="button" data-v="w">근로자 서명<i>수령 확인 칸</i></button>
+        <button type="button" data-v="b">사업주 서명<i>지급 확인 칸</i></button>
+      </div>
+      <p class="fine" style="margin-top:0" id="rcDesc"></p>
+      <div class="pad" id="pad"><canvas id="sigPad" aria-label="서명판"></canvas><span>여기에 서명하세요</span></div>
+      <div class="tools">
+        <button class="mini" id="sigClear" type="button">지우기</button>
+        <button class="mini pri" id="sigOk" type="button">서명 넣기</button>
+        <button class="mini danger hide" id="sigDel" type="button">서명 빼기</button>
+      </div>
+      <div class="note info hide" id="rcDone"></div>
+    </section>
     <div class="pvbox"><canvas id="pv" width="10" height="10" aria-label="임금명세서 미리보기"></canvas></div>
     <div class="pvnav hide" id="pvNav"><button class="sq" id="pvPrev" type="button" aria-label="앞 쪽">‹</button><span id="pvPos">1 / 1쪽</span><button class="sq" id="pvNext" type="button" aria-label="다음 쪽">›</button></div>
+    <!-- 저장 패널 — 명세서 미리보기 바로 아래 -->
+    <div class="actions" id="actions">
+      <button class="btn pri" id="dlPdf" type="button">PDF로 저장<i>A4 한 장</i></button>
+      <button class="btn" id="dlPng" type="button">이미지로 저장<i>PNG · 카톡 전송용</i></button>
+      <button class="btn" id="doLink" type="button">링크 만들기<i>보내기 · 보관</i></button>
+      <button class="btn" id="doPrint" type="button">인쇄<i>A4</i></button>
+    </div>
+    <div class="linkbox hide" id="linkBox">
+      <input type="text" id="linkUrl" readonly aria-label="명세서 링크">
+      <div class="tools"><button class="mini pri" id="linkCopy" type="button">링크 복사</button><button class="mini hide" id="linkShare" type="button">보내기</button><button class="mini" id="linkHide" type="button">닫기</button></div>
+      <p class="fine" id="linkNote"></p>
+    </div>
     <ul class="checks" id="checks"></ul>
-  </section>
-
-  <!-- 수령 확인 — 근로자가 손가락으로 서명하면 명세서 「수령 확인」 칸에 들어간다 -->
-  <section class="card hide" id="rcCard">
-    <h2><span id="rcTitle">수령 확인 · 근로자 서명</span><span class="h2r" id="rcState"></span></h2>
-    <div class="seg sm hide" id="segSigT" style="margin-bottom:10px">
-      <button type="button" data-v="w">근로자 서명<i>수령 확인 칸</i></button>
-      <button type="button" data-v="b">사업주 서명<i>지급 확인 칸</i></button>
-    </div>
-    <p class="fine" style="margin-top:0" id="rcDesc"></p>
-    <div class="pad" id="pad"><canvas id="sigPad" aria-label="서명판"></canvas><span>여기에 서명하세요</span></div>
-    <div class="tools">
-      <button class="mini" id="sigClear" type="button">지우기</button>
-      <button class="mini pri" id="sigOk" type="button">서명 넣기</button>
-      <button class="mini danger hide" id="sigDel" type="button">서명 빼기</button>
-    </div>
-    <div class="note info hide" id="rcDone"></div>
   </section>
 
   <!-- 저장·인쇄·링크 복사 뒤 안내 카드 — 화면을 덮지 않고 명세서 카드 아래에 펼친다 -->
