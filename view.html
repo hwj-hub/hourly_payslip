@@ -296,7 +296,7 @@ function freshState() {
     sch: defSched(), ov: {}, wk: {},
     extras: [], minus: [],
     ded: 'none', ins: { np: true, hi: true, ei: true, tax: true }, fam: 1, kids: 0, dayEi: true,
-    man: {}, log: true, logType: 'list', cal0: 1, holWork: false, hwv: 2, whdWork: false, rcpt: true, rc: null, pyck: true, bsig: false, bs: null
+    man: {}, log: true, logType: 'list', cal0: 1, holWork: false, hwv: 2, whdWork: false, juOff: false, rcpt: true, rc: null, pyck: true, bsig: false, bs: null
   };
 }
 let S = freshState();
@@ -390,6 +390,7 @@ function calc() {
     let hol = auto;
     if (f === 'off') hol = 0;
     else if (f === 'on' && !auto) hol = Math.round(Math.min(Math.max(so, 900), 2400) / 5);
+    if (S.juOff) hol = 0;                                         /* 「주휴수당 넣지 않음」 — 법대로 생기는 주휴(auto)는 점검용으로 남긴다 */
     const why = so < 900 ? '약속 시간 ' + hm(so) + ' · 15시간 미만' : abs ? '결근한 날이 있음' : '약속 ' + hm(so) + ' · 개근';
     weeks.push({ start: ds[0].dn, end, so, abs, auto, hol, forced: f || '', why, hours, inP: end >= ps && end <= pe, days: ds });
   }
@@ -506,10 +507,22 @@ function checks(C) {
   }
   if (bad.length) out.push(['warn', bad.join('·') + '요일 휴게시간이 모자랍니다', '4시간 일하면 30분, 8시간이면 1시간 이상 쉬게 해야 합니다(근로기준법 제54조, 모든 사업장)']);
   const wks = C.weeks.filter(w => w.inP);
-  const miss = wks.filter(w => !w.hol && w.so >= 900);
-  if (C.juMin) out.push(['ok', '주휴수당 ' + wks.filter(w => w.hol).length + '주 · ' + hm(C.juMin)]);
-  if (miss.length) out.push(['warn', '주휴수당이 빠진 주가 ' + miss.length + '주 있습니다', miss.map(w => md(w.start) + '~' + md(w.end) + ' ' + (w.forced === 'off' ? '직접 뺌' : w.why)).join(' · ')]);
-  if (!C.juMin && !miss.length && wks.length) out.push(['info', '주 15시간 미만이라 주휴수당이 없습니다', '초단시간 근로자는 주휴·연차·퇴직금이 적용되지 않습니다']);
+  if (S.juOff) {
+    /* 주휴를 시급에 넣었다면 시급이 「최저시급 × (약속 시간 + 주휴 시간) ÷ 약속 시간」 이상이어야 한다 */
+    const due = wks.filter(w => w.auto);
+    if (due.length) {
+      const so = Math.max(...due.map(w => w.so)), ju = Math.min(so, 2400) / 5;
+      const need = Math.ceil(minWage(ymdOf(C.pe).y) * (so + ju) / so);
+      const short = C.wage < need;
+      out.push([short ? 'bad' : 'warn', '주휴수당을 넣지 않았습니다 — 법대로면 ' + due.length + '주 · ' + hm(due.reduce((a, w) => a + w.auto, 0)) + ' 주휴가 생깁니다',
+        '주 15시간 이상이면 주휴수당은 의무입니다. 시급에 포함했다면 계약서에 적고, 시급이 ' + comma(need) + '원(최저시급에 주휴를 더한 값) 이상이어야 합니다' + (short ? ' — 지금 시급은 모자랍니다' : '')]);
+    } else out.push(['info', '주휴수당을 넣지 않았습니다', '이번 달은 주 15시간 이상·개근한 주가 없어 법정 주휴수당도 없습니다']);
+  } else {
+    const miss = wks.filter(w => !w.hol && w.so >= 900);
+    if (C.juMin) out.push(['ok', '주휴수당 ' + wks.filter(w => w.hol).length + '주 · ' + hm(C.juMin)]);
+    if (miss.length) out.push(['warn', '주휴수당이 빠진 주가 ' + miss.length + '주 있습니다', miss.map(w => md(w.start) + '~' + md(w.end) + ' ' + (w.forced === 'off' ? '직접 뺌' : w.why)).join(' · ')]);
+    if (!C.juMin && !miss.length && wks.length) out.push(['info', '주 15시간 미만이라 주휴수당이 없습니다', '초단시간 근로자는 주휴·연차·퇴직금이 적용되지 않습니다']);
+  }
   if (S.whdWork) out.push(['info', '주휴일(' + WD[S.whd] + '요일)에 근무한 것으로 셉니다', C.five ? '5명 이상은 휴일근로 1.5배 · 주휴수당은 그대로' : '5명 미만이라 시급 그대로 · 주휴수당은 그대로']);
   else if (S.sch[S.whd] && S.sch[S.whd].on) out.push(['info', WD[S.whd] + '요일은 주휴일(쉼)이라 시간표에서 뺐습니다', '주휴일에도 일했다면 「주휴일에 근무」를 고르세요']);
   if (C.five) {
@@ -923,7 +936,7 @@ function paintSched() {
   let wk = 0, days = 0;
   for (let d = 0; d < 7; d++) if (S.sch[d].on && d !== S.whd) { wk += workOf(S.sch[d].s, S.sch[d].e, S.sch[d].b).mins; days++; }   /* 주휴일 근무는 약속 시간에 넣지 않는다 */
   const ju = wk >= 900 ? Math.round(Math.min(wk, 2400) / 5) : 0;
-  $('#schSum').innerHTML = '주 <b>' + days + '일 · ' + hm(wk) + '</b> 약속 → 주휴 <b>' + (ju ? hm(ju) : '없음 (15시간 미만)') + '</b>';
+  $('#schSum').innerHTML = '주 <b>' + days + '일 · ' + hm(wk) + '</b> 약속 → 주휴 <b>' + (S.juOff ? '넣지 않음 (설정)' : ju ? hm(ju) : '없음 (15시간 미만)') + '</b>';
   $('#schTag').textContent = days ? '주 ' + hm(wk) : '';
   $('#selWhd').innerHTML = ORDER.map(d => '<option value="' + d + '"' + (d === S.whd ? ' selected' : '') + '>' + WD[d] + '요일' + (S.sch[d].on ? ' (근무 요일)' : '') + '</option>').join('');
 }
@@ -990,10 +1003,10 @@ function paintCal(C) {
   let w = '';
   for (const k of C.weeks) {
     const nx = !k.inP;
-    const btn = nx ? '' : '<button type="button" class="wb" data-w="' + keyOf(k.end) + '">' + (k.hol ? '빼기' : '넣기') + '</button>';
+    const btn = nx || S.juOff ? '' : '<button type="button" class="wb" data-w="' + keyOf(k.end) + '">' + (k.hol ? '빼기' : '넣기') + '</button>';
     w += '<div class="wk' + (nx ? ' nx' : '') + '"><div class="wt"><b>' + md(k.start) + ' ~ ' + md(k.end) + '</b> · 일한 시간 ' + hm(k.hours) +
       '<small>' + (nx ? (k.end > C.pe ? '주휴일이 다음 달 — 다음 달 명세서에 들어갑니다' : '지난 명세서에 들어간 주') : k.why + (k.forced ? ' · 직접 ' + (k.forced === 'on' ? '넣음' : '뺌') : '')) + '</small></div>' +
-      '<div class="wv' + (k.hol ? '' : ' no') + '">' + (k.hol ? '주휴 ' + hm(k.hol) : '주휴 없음') + '</div>' + btn + '</div>';
+      '<div class="wv' + (k.hol ? '' : ' no') + '">' + (k.hol ? '주휴 ' + hm(k.hol) : S.juOff ? (k.auto ? '넣지 않음<br><small>법대로면 ' + hm(k.auto) + '</small>' : '넣지 않음') : '주휴 없음') + '</div>' + btn + '</div>';
   }
   $('#weeks').innerHTML = w;
 }
@@ -1099,6 +1112,7 @@ function paintInfo() {
   $('#cPyck').checked = !!S.pyck;
   $('#cBsig').checked = !!S.bsig;
   $('#rowBsig').classList.toggle('hide', !S.pyck);
+  document.querySelectorAll('#segJu button').forEach(b => b.classList.toggle('on', (b.dataset.v === 'off') === !!S.juOff));
   document.querySelectorAll('#segWhd button').forEach(b => b.classList.toggle('on', (b.dataset.v === 'work') === !!S.whdWork));
   document.querySelectorAll('#segHol button').forEach(b => b.classList.toggle('on', (b.dataset.v === 'work') === !!S.holWork));
 }
