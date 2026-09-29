@@ -8,9 +8,12 @@
 <title>임금명세서 보기 · 보기 전용</title>
 <meta name="description" content="링크로 받은 임금명세서를 보는 화면입니다. 내용은 고칠 수 없고, PDF·이미지로 저장하거나 인쇄할 수 있습니다.">
 <meta property="og:title" content="임금명세서가 도착했습니다">
-<meta property="og:description" content="링크를 열면 명세서를 보고 PDF·이미지로 저장할 수 있습니다. 내용은 서버에 저장되지 않습니다.">
+<meta property="og:description" content="눌러서 명세서를 확인하세요 · 보기 전용 · PDF·이미지 저장 · 내용은 서버에 저장되지 않습니다">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://hwj-hub.github.io/hourly_payslip/og-image.png">
+<meta property="og:image" content="https://hwj-hub.github.io/hourly_payslip/og-view.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%F0%9F%A7%BE%3C/text%3E%3C/svg%3E">
 <style id="pageStyle"></style>
 <style>
@@ -1210,15 +1213,59 @@ let SHARED = null;
 function b64u(u8) { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s).replace(/[+]/g, '-').replace(/[/]/g, '_').replace(/=+$/, ''); }
 function unb64u(str) { str = str.replace(/-/g, '+').replace(/_/g, '/'); while (str.length % 4) str += '='; const b = atob(str), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
 async function pipeBytes(u8, T) { return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(T)).arrayBuffer()); }
+/* 링크 v2 — 기본값과 같은 항목은 빼고(받는 쪽이 기본값으로 채운다), 서명 좌표는 앞 점과의 차이로 담아 압축이 잘 되게 한다.
+   오늘 날짜에 따라 바뀌는 기본값(급여 달·지급일·시급)은 늘 담는다. v1 링크(s: 전체 상태)도 그대로 읽는다 */
+const LINK_ALWAYS = ['y', 'm', 'cut', 'ps', 'pe', 'pay', 'wage'];
+const dPts = pts => pts.map(st => st.map((v, i) => i < 2 ? v : v - st[i - 2]));
+const uPts = pts => pts.map(st => { const o = st.slice(); for (let i = 2; i < o.length; i++) o[i] += o[i - 2]; return o; });
+/* 서명 줄이기 — 거의 일직선인 구간의 점을 빼고(Ramer–Douglas–Peucker, 허용 오차 3/1000 폭), 좌표를 1/4 로 내린다.
+   서명판 폭 1000 이 명세서에서 26mm 라 4 단위는 0.1mm — 선 굵기(0.42mm)보다 훨씬 작아 눈으로는 같다 */
+const SIG_Q = 4;
+function rdp(st, eps) {
+  const n = st.length / 2;
+  if (n < 3) return st.slice();
+  const keep = new Uint8Array(n); keep[0] = keep[n - 1] = 1;
+  const stack = [[0, n - 1]];
+  while (stack.length) {
+    const [a, b] = stack.pop();
+    const ax = st[a * 2], ay = st[a * 2 + 1], bx = st[b * 2], by = st[b * 2 + 1];
+    const len = Math.hypot(bx - ax, by - ay) || 1;
+    let far = -1, fd = 0;
+    for (let i = a + 1; i < b; i++) {
+      const d = Math.abs((bx - ax) * (ay - st[i * 2 + 1]) - (ax - st[i * 2]) * (by - ay)) / len;
+      if (d > fd) { fd = d; far = i; }
+    }
+    if (far >= 0 && fd > eps) { keep[far] = 1; stack.push([a, far], [far, b]); }
+  }
+  const out = [];
+  for (let i = 0; i < n; i++) if (keep[i]) out.push(st[i * 2], st[i * 2 + 1]);
+  return out;
+}
+const packPts = pts => dPts(pts.map(st => rdp(st, 3).map(v => Math.round(v / SIG_Q))));
+const unpackPts = pq => uPts(pq).map(st => st.map(v => v * SIG_Q));
 function linkState() {
   const o = JSON.parse(JSON.stringify(S));
-  delete o.savedAt;
   const lo = CUR.days[0].dn - 7, hi = CUR.days[CUR.days.length - 1].dn + 7;    /* 이 명세서와 상관없는 날짜 기록은 뺀다 */
   for (const m of ['ov', 'wk']) for (const k of Object.keys(o[m] || {})) { const dn = dnFromKey(k); if (dn == null || dn < lo || dn > hi) delete o[m][k]; }
-  return o;
+  const def = freshState(), d = {};
+  for (const k of Object.keys(o)) {
+    if (k === 'savedAt' || k === 'v') continue;
+    if (LINK_ALWAYS.includes(k) || JSON.stringify(o[k]) !== JSON.stringify(def[k])) d[k] = o[k];
+  }
+  for (const k of ['rc', 'bs']) if (d[k] && d[k].pts) { d[k].pq = packPts(d[k].pts); delete d[k].pts; }
+  return d;
+}
+function linkToState(p) {
+  const src = p.v === 2 ? p.d : p.s;
+  if (!src) throw new Error('빈 링크');
+  for (const k of ['rc', 'bs']) {
+    if (src[k] && src[k].pq) { src[k].pts = unpackPts(src[k].pq); delete src[k].pq; }
+    else if (src[k] && src[k].pd) { src[k].pts = uPts(src[k].pd); delete src[k].pd; }
+  }
+  return Object.assign(freshState(), src);
 }
 async function packLink() {
-  let u = te8.encode(JSON.stringify({ v: 1, s: linkState(), n: CUR.net })), pre = 'j';
+  let u = te8.encode(JSON.stringify({ v: 2, d: linkState(), n: CUR.net })), pre = 'j';
   if (typeof CompressionStream === 'function') { try { u = await pipeBytes(u, new CompressionStream('deflate-raw')); pre = 'z'; } catch (e) { /* 압축 없이 */ } }
   return pre + b64u(u);
 }
@@ -1246,7 +1293,7 @@ async function runLink() {
   $('#linkBox').classList.remove('hide');
   $('#linkShare').classList.toggle('hide', !(navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)));
   $('#linkNote').innerHTML = '링크 안에 이 명세서 내용이 모두 들어 있습니다(' + comma(url.length) + '자). <b>서버에 저장되지 않고</b>, 링크를 열면 <b>보기 전용 화면</b>(view.html)에서 같은 명세서를 보고 저장할 수 있습니다. 입력칸이 없어 고칠 수는 없습니다. ' +
-    '받을 사람에게만 보내고, 보관하려면 메모나 카톡 「나와의 채팅」에 붙여 두세요.' +
+    '받을 사람에게만 보내고, 보관하려면 메모나 카톡 「나와의 채팅」에 붙여 두세요. <b>카톡에는 주소만 붙여 넣으세요</b> — 앞뒤에 다른 글을 섞지 않아야 미리보기 카드가 생기고, 카드를 누르면 바로 열립니다.' +
     (rc ? ' <b>근로자 서명이 들어 있는 링크</b>입니다.' : '');
   return url;
 }
@@ -1621,8 +1668,7 @@ function viewInit() {
   }
   if (!m) { fail(); return; }
   unpackLink(m[1]).then(p => {
-    if (!p || !p.s) throw new Error('빈 링크');
-    S = Object.assign(freshState(), p.s);
+    S = linkToState(p);
     V.net = p.n;
     $('#vMain').classList.remove('hide');
     vPaint();
