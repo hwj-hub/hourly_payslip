@@ -4,17 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f766e">
-<title>시급 임금명세서 작성기 · 알바 급여명세서 만들기, 주휴수당·가산수당·공제 자동 (2026·2027)</title>
-<meta name="description" content="시급과 요일별 출퇴근 시간만 넣으면 달력대로 근무시간을 세어 기본급·주휴수당·연장·야간·휴일수당·공휴일 유급휴일수당을 계산하고, 근로기준법이 요구하는 계산방법까지 적힌 임금명세서를 PDF·이미지로 만들어 줍니다. 4대보험·간이세액 소득세, 3.3%, 일용직 공제 선택. 2026년 최저시급 10,320원·2027년 10,700원 점검. 설치·회원가입 없이, 급여 정보는 서버로 보내지 않습니다.">
-<meta property="og:title" content="시급 임금명세서 작성기 · 알바 급여명세서 만들기">
-<meta property="og:description" content="시급과 출퇴근 시간만 넣으면 주휴수당·가산수당·공제까지 계산된 임금명세서 완성. 계산방법 자동 기재, PDF·이미지 저장, 카톡으로 보내기. 설치·업로드 없이.">
+<meta name="robots" content="noindex">
+<title>임금명세서 보기 · 보기 전용</title>
+<meta name="description" content="링크로 받은 임금명세서를 보는 화면입니다. 내용은 고칠 수 없고, PDF·이미지로 저장하거나 수령 확인 서명을 할 수 있습니다.">
+<meta property="og:title" content="임금명세서가 도착했습니다">
+<meta property="og:description" content="링크를 열면 명세서를 보고 PDF·이미지로 저장할 수 있습니다. 내용은 서버에 저장되지 않습니다.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://hwj-hub.github.io/hourly_payslip/">
 <meta property="og:image" content="https://hwj-hub.github.io/hourly_payslip/og-image.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="시급 임금명세서 작성기 — 시급과 근무 달력으로 주휴수당·가산수당·공제를 계산해 임금명세서를 만들어 주는 무료 도구">
-<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%F0%9F%A7%BE%3C/text%3E%3C/svg%3E">
 <style id="pageStyle"></style>
 <style>
@@ -24,16 +20,13 @@
   --bg:#f2f7f6; --card:#fff; --card2:#edf5f3; --fg:#0f1f1c; --muted:#557069; --line:#d3e4e0;
   --accent:#0f766e; --accent2:#0d9488; --afg:#fff;
   --ok:#047857; --okbg:#e3f5ee; --warn:#b45309; --warnbg:#fef4e6; --danger:#dc2626; --dangerbg:#fdecec;
-  --hol:#dc2626; --sat:#2563eb;
   --shadow:0 1px 2px rgba(15,31,28,.05),0 8px 24px -14px rgba(15,31,28,.30);
-  --r:16px;
 }
 @media (prefers-color-scheme:dark){
  :root{
   --bg:#0b1513; --card:#12201d; --card2:#0f1a18; --fg:#e8f4f1; --muted:#9bb8b1; --line:#243c37;
   --accent:#5eead4; --accent2:#99f6e4; --afg:#04201c;
   --ok:#34d399; --okbg:#0c2b23; --warn:#fbbf24; --warnbg:#2a2110; --danger:#f87171; --dangerbg:#2c1414;
-  --hol:#f87171; --sat:#93c5fd;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -16px rgba(0,0,0,.8);
  }
 }
@@ -41,359 +34,63 @@ html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--fg);line-height:1.55;word-break:keep-all;overflow-wrap:anywhere;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",Roboto,sans-serif;
   -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
-.wrap{max-width:1180px;margin:0 auto;padding:0 14px calc(70px + env(safe-area-inset-bottom))}
+.wrap{max-width:860px;margin:0 auto;padding:12px 14px calc(40px + env(safe-area-inset-bottom))}
 .hide{display:none !important}
-.nw{white-space:nowrap}
-
-/* ── 인앱 브라우저 안내 띠 ── 앱 안 WebView 는 파일을 내려받지 못한다 */
-.iabar{display:none;align-items:center;gap:10px;margin:10px 0 0;padding:11px 12px;border-radius:12px;
-  background:var(--warnbg);border:1px solid color-mix(in srgb,var(--warn) 34%,transparent);line-height:1.5}
-body.inapp .iabar{display:flex}
-.iabar .ia-t{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:700;color:var(--fg)}
-.iabar .ia-t small{display:block;font-size:11.5px;font-weight:600;color:var(--muted);margin-top:2px}
-.iabar .ia-go{flex:0 0 auto;font:inherit;font-size:12.5px;font-weight:800;color:#fff;border:0;border-radius:999px;
-  padding:9px 14px;min-height:38px;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2))}
-@media (prefers-color-scheme:dark){.iabar .ia-go{color:var(--afg)}}
-.iabar .ia-x{flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:transparent;
-  color:var(--muted);font:inherit;font-size:12px;line-height:1;cursor:pointer}
-/* ── 앱 안에서 열었을 때 막는 창 ── 토스트(z-index 99)보다는 아래에 둔다 */
-.iamodal{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:18px;
-  background:rgba(4,20,17,.72);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
-body.ia-lock{overflow:hidden}
-body.ia-lock .iamodal{display:flex}
-body.ia-lock .wrap{pointer-events:none}
-.iasheet{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
-  width:100%;max-width:420px;max-height:92vh;overflow:auto;padding:22px 18px 16px;text-align:center}
-.iasheet .iaic{font-size:34px;line-height:1;margin-bottom:10px}
-.iasheet h2{font-size:17.5px;font-weight:800;letter-spacing:-.02em;margin:0 0 10px;line-height:1.45;text-wrap:balance}
-.iap{font-size:13.5px;font-weight:600;color:var(--muted);line-height:1.7;margin:0 0 14px}
-.iap b{color:var(--fg);font-weight:800}
-.iasteps{text-align:left;margin:0 0 16px;padding:12px 14px 12px 32px;border-radius:12px;background:var(--card2);
-  font-size:13px;font-weight:600;color:var(--muted);line-height:1.7}
-.iasteps li+li{margin-top:5px}
-.iasteps b{color:var(--fg);font-weight:800}
-.iabtn{display:block;width:100%;font:inherit;font-size:15px;font-weight:800;color:#fff;border:0;border-radius:12px;
-  padding:14px;min-height:52px;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));
-  box-shadow:var(--shadow)}
-@media (prefers-color-scheme:dark){.iabtn{color:var(--afg)}}
-.iafine{margin:12px 0 0;font-size:12px;font-weight:600;color:var(--muted);line-height:1.6}
-.iafine button{font:inherit;font-size:12px;font-weight:700;color:var(--muted);background:none;border:0;padding:6px 8px;
-  text-decoration:underline;cursor:pointer;min-height:36px}
-.dwarn{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:var(--warnbg);font-size:12.5px;font-weight:700;line-height:1.6}
-.dwarn button{font:inherit;font-size:12.5px;font-weight:800;color:var(--accent);background:none;border:0;padding:9px 2px;margin:-9px 0;
-  text-decoration:underline;cursor:pointer}
-/* ── 저장 완료 카드 ── 화면을 덮지 않고 본문 흐름 안에 펼친다 */
-#doneCard{border-color:color-mix(in srgb,var(--ok) 40%,var(--line))}
-.dmsg{margin:0 0 10px;font-size:14px;font-weight:700;line-height:1.6}
-.dsteps{margin:0;padding:0 0 0 20px;font-size:13px;font-weight:600;line-height:1.75;color:var(--muted)}
-.dsteps b{color:var(--fg);font-weight:800}
-
-header{text-align:center;padding:14px 0 2px}
-.logo{display:inline-flex;align-items:center;gap:9px;font-size:22px;font-weight:800;letter-spacing:-.02em}
-.logo .ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:17px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:var(--shadow)}
-.tag{font-size:14.5px;font-weight:600;color:var(--muted);margin:8px 0 0;text-wrap:balance}
-.tag b{color:var(--fg)}
-.badges{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}
-.badge{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--okbg);color:var(--ok);border:1px solid transparent}
-.badge.gray{background:var(--card2);color:var(--muted);border-color:var(--line)}
-
-/* ── 두 칸 배치 · 넓은 화면에서 명세서 미리보기를 옆에 붙인다 ── */
-.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:0 16px}
-@media (min-width:980px){
-  .layout{grid-template-columns:minmax(0,1fr) 440px;align-items:start}
-  /* 옆 칸이 화면보다 길면 스스로 스크롤한다 — sticky 만 두면 완료 카드가 화면 밖에 남는다 */
-  .side{position:sticky;top:8px;max-height:calc(100vh - 16px);overflow:auto;overscroll-behavior:contain;
-    scrollbar-width:thin;padding:0 2px 12px}
-}
-
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;margin-top:14px}
-.card h2{font-size:12px;font-weight:800;color:var(--muted);margin:0 0 12px;letter-spacing:.07em;
-  display:flex;align-items:center;justify-content:space-between;gap:8px}
-.card h2 .n{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;margin-right:6px;
-  background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);letter-spacing:0;font-size:11.5px}
-.h2r{font-size:11.5px;font-weight:700;color:var(--accent);letter-spacing:0;text-align:right;min-width:0}
-
-.row{margin-top:16px}
-.row:first-child{margin-top:0}
-.lab{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:13.5px;font-weight:800;margin-bottom:8px}
-.lab .hint{font-weight:500;color:var(--muted);font-size:12px;text-align:right}
-.seg{display:flex;gap:6px;flex-wrap:wrap}
-.seg button{flex:1 1 84px;border:1px solid var(--line);background:var(--card2);color:var(--fg);font:inherit;font-size:13px;
-  font-weight:700;padding:9px 6px;border-radius:11px;cursor:pointer;min-height:48px;transition:.15s;line-height:1.3}
-.seg button i{display:block;font-style:normal;font-size:11px;font-weight:600;color:var(--muted);margin-top:2px}
-.seg button:hover{border-color:var(--accent)}
-.seg button.on{border-color:transparent;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:var(--shadow)}
-.seg button.on i{color:rgba(255,255,255,.85)}
-@media (prefers-color-scheme:dark){.seg button.on{color:var(--afg)}.seg button.on i{color:rgba(4,32,28,.75)}}
-.seg.sm button{min-height:42px;font-size:12.5px;padding:7px 6px}
-@media (max-width:560px){#segDed button{flex:1 1 calc(50% - 6px)}}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.chip{border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;font-size:12.5px;font-weight:700;
-  padding:7px 11px;border-radius:999px;cursor:pointer;min-height:40px;line-height:1.25}
-.chip i{font-style:normal;font-weight:600;color:var(--muted);font-size:11.5px}
-.chip:hover{border-color:var(--accent)}
-.chip.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--card));color:var(--accent)}
-.chip .x{margin-left:4px;color:var(--muted);font-weight:800}
-
-.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.nf{position:relative;min-width:0;display:block}
-.nf span{position:absolute;left:11px;top:5px;font-size:10.5px;font-weight:800;color:var(--muted);pointer-events:none;letter-spacing:.02em;z-index:1}
-.nf input,.nf select{display:block;width:100%;font:inherit;font-size:16px;font-weight:700;color:var(--fg);background:var(--card2);
-  border:1px solid var(--line);border-radius:10px;padding:19px 10px 5px;min-height:50px}
-.nf select{font-size:15px;padding:19px 8px 5px}
-.nf input:focus,.nf select:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
-.nf input::placeholder{color:var(--muted);opacity:.55;font-weight:600}
-.nf.won input{padding-right:30px;text-align:right}
-.nf.won::after{content:'원';position:absolute;right:11px;bottom:9px;font-size:13px;font-weight:700;color:var(--muted)}
-.sel{display:block;width:100%;font:inherit;font-size:14px;font-weight:700;color:var(--fg);background:var(--card2);
-  border:1px solid var(--line);border-radius:11px;padding:10px 12px;min-height:46px}
-.sel:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
-.sub-h{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.06em;margin:18px 0 0;padding-top:14px;border-top:1px solid var(--line)}
-.chk{display:flex;gap:9px;align-items:flex-start;padding:8px 0;cursor:pointer;font-size:13.5px;font-weight:700}
-.chk input{flex:0 0 auto;width:20px;height:20px;margin:1px 0 0;accent-color:var(--accent)}
-.chk i{display:block;font-style:normal;font-size:12px;font-weight:600;color:var(--muted);margin-top:2px;line-height:1.6}
-.tools{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
-.mini{border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;font-size:13px;font-weight:700;
-  padding:9px 14px;border-radius:999px;cursor:pointer;min-height:42px;transition:.15s}
-.mini:hover{border-color:var(--accent)}
-.mini.danger:hover{border-color:var(--danger);color:var(--danger)}
-
-.note{border-radius:11px;padding:10px 12px;font-size:12.5px;font-weight:600;line-height:1.65;margin-top:11px}
-.note b{font-weight:800}
-.note.info{background:var(--card2);color:var(--muted);border:1px solid var(--line)}
-.note.warn{background:var(--warnbg);color:var(--warn)}
-.note.bad{background:var(--dangerbg);color:var(--danger)}
-.fine{font-size:12px;font-weight:600;color:var(--muted);line-height:1.65;margin:9px 0 0}
-.fine b{color:var(--fg)}
-
-/* ── 요일별 시간표 ── */
-.sched{display:flex;flex-direction:column;gap:7px}
-.srow{display:grid;grid-template-columns:50px minmax(0,1fr);gap:8px;align-items:center;padding:6px;border-radius:12px;border:1px solid var(--line);background:var(--card2)}
-.srow.off{background:transparent}
-.srow.wr .sh{color:var(--muted)}
-.srow.off .offt{font-size:12.5px;font-weight:700;color:var(--muted)}
-.dtog{width:50px;min-height:50px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--muted);
-  font:inherit;font-size:15px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;padding:0}
-.dtog i{font-style:normal;font-size:9.5px;font-weight:700;margin-top:2px}
-.dtog.on{border-color:transparent;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
-@media (prefers-color-scheme:dark){.dtog.on{color:var(--afg)}}
-.dtog.sun{color:var(--hol)} .dtog.sat{color:var(--sat)}
-.dtog.on.sun,.dtog.on.sat{color:#fff}
-@media (prefers-color-scheme:dark){.dtog.on.sun,.dtog.on.sat{color:var(--afg)}}
-.tm{display:flex;flex-wrap:wrap;align-items:center;gap:5px 6px;min-width:0}
-.tp{display:inline-flex;align-items:center;gap:2px}
-.tp select,.brk{font:inherit;font-size:15px;font-weight:700;color:var(--fg);background:var(--card);border:1px solid var(--line);
-  border-radius:9px;min-height:44px;padding:0 4px;text-align:center;text-align-last:center}
-.tp select{width:52px}
-.tp b{font-weight:800;color:var(--muted)}
-.tm .til{font-weight:800;color:var(--muted);padding:0 1px}
-.brk{width:auto;min-width:92px;font-size:13.5px;padding:0 6px}
-.sh{font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap}
-.sh.nx{color:var(--warn)}
-.ssum{margin-top:10px;font-size:13px;font-weight:700;line-height:1.7}
-.ssum b{color:var(--accent);font-weight:800}
-
-/* ── 근무 달력 ── */
-.calh,.calg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
-.calh div{text-align:center;font-size:11.5px;font-weight:800;color:var(--muted);padding:2px 0}
-.calh .sun{color:var(--hol)} .calh .sat{color:var(--sat)}
-.calg{margin-top:4px}
-.cc{position:relative;min-height:56px;border-radius:10px;border:1px solid var(--line);background:var(--card);cursor:pointer;
-  font:inherit;color:var(--fg);padding:4px 2px 3px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;min-width:0}
-.cc:hover{border-color:var(--accent)}
-.cc .dn{font-size:12.5px;font-weight:800;line-height:1.2}
-.cc .hr{font-size:11px;font-weight:800;line-height:1.25;color:var(--accent);white-space:nowrap}
-.cc .tg{font-size:9.5px;font-weight:700;line-height:1.2;color:var(--muted);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 1px}
-.cc.work{background:color-mix(in srgb,var(--accent) 11%,var(--card));border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
-.cc.abs{background:var(--dangerbg);border-color:color-mix(in srgb,var(--danger) 35%,var(--line))}
-.cc.abs .hr{color:var(--danger)}
-.cc.leave{background:var(--okbg)}
-.cc.leave .hr{color:var(--ok)}
-.cc.out{opacity:.45;border-style:dashed}
-.cc.hol .dn,.cc.sun .dn{color:var(--hol)}
-.cc.sat .dn{color:var(--sat)}
-.cc.hol .tg{color:var(--hol)}
-.cc.ed{box-shadow:0 0 0 2px var(--accent) inset}
-.cc.chg::after{content:'';position:absolute;right:4px;top:4px;width:6px;height:6px;border-radius:50%;background:var(--warn)}
-.legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:9px;font-size:11.5px;font-weight:700;color:var(--muted)}
-.legend span{display:inline-flex;align-items:center;gap:5px}
-.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;border:1px solid var(--line)}
-.dayed{margin-top:10px;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:14px;padding:12px;background:var(--card2)}
-.dayed .dt{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;font-weight:800;margin-bottom:10px}
-.dayed .dt small{font-size:12px;font-weight:700;color:var(--hol)}
-.dayed .tm{margin-top:10px}
-.weeks{margin-top:12px;display:flex;flex-direction:column;gap:6px}
-.wk{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:11px;border:1px solid var(--line);background:var(--card2);font-size:12.5px;font-weight:700;line-height:1.5}
-.wk .wt{flex:1 1 auto;min-width:0}
-.wk .wt b{font-weight:800}
-.wk .wt small{display:block;font-size:11.5px;font-weight:600;color:var(--muted)}
-.wk .wv{flex:0 0 auto;text-align:right;font-weight:800;color:var(--accent);white-space:nowrap}
-.wk .wv.no{color:var(--muted)}
-.wk .wb{flex:0 0 auto;font:inherit;font-size:11.5px;font-weight:800;border:1px solid var(--line);background:var(--card);color:var(--muted);
-  border-radius:999px;padding:6px 10px;min-height:36px;cursor:pointer}
-.wk.nx{opacity:.6}
-
-/* ── 추가 수당·공제 ── */
-.xrow{display:grid;grid-template-columns:minmax(0,1fr) 128px auto 40px;gap:6px;align-items:center;margin-top:7px}
-.xrow input[type=text],.xrow input.amt{font:inherit;font-size:15px;font-weight:700;color:var(--fg);background:var(--card2);border:1px solid var(--line);
-  border-radius:10px;padding:8px 10px;min-height:44px;width:100%;min-width:0}
-.xrow input.amt{text-align:right}
-.xrow label{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;cursor:pointer}
-.xrow label input{width:18px;height:18px;accent-color:var(--accent)}
-.xrow .del{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--muted);font:inherit;font-size:13px;cursor:pointer}
-.xrow.m{grid-template-columns:minmax(0,1fr) 128px 40px}
-@media (max-width:430px){.xrow{grid-template-columns:minmax(0,1fr) 110px 40px}.xrow label{grid-column:1 / -1;order:5;padding-left:2px}}
-.dtab{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
-.dtab td{padding:7px 4px;border-top:1px solid var(--line);vertical-align:middle}
-.dtab td:first-child{font-weight:800}
-.dtab td small{display:block;font-size:11px;font-weight:600;color:var(--muted);line-height:1.45}
-.dtab td.v{width:124px;text-align:right}
-.dtab input{width:118px;font:inherit;font-size:14.5px;font-weight:800;text-align:right;color:var(--fg);background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:6px 8px;min-height:40px}
-.dtab input.man{border-color:var(--warn);background:var(--warnbg)}
-.dtab tr.tot td{font-weight:800;border-top:2px solid var(--line)}
-.dtab tr.tot td.v{padding-right:10px;color:var(--accent)}
-
-/* ── 명세서 미리보기 ── */
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 2px 0}
+.brand{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--fg);text-decoration:none}
+.brand .ico{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-size:14px;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.ro{font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:999px;background:var(--card2);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-top:12px}
+.card h2{font-size:12px;font-weight:800;color:var(--muted);margin:0 0 12px;letter-spacing:.07em;display:flex;justify-content:space-between;gap:8px}
+.who{font-size:19px;font-weight:800;letter-spacing:-.02em;margin:0}
+.per{font-size:13px;font-weight:600;color:var(--muted);margin:3px 0 12px}
 .net{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:12px 14px;border-radius:13px;
   background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 14%,var(--card)),color-mix(in srgb,var(--accent2) 8%,var(--card)));border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line))}
-.net .k{font-size:12px;font-weight:800;color:var(--muted);line-height:1.5}
-.net .k small{display:block;font-size:11.5px;font-weight:700}
-.net .v{font-size:25px;font-weight:900;letter-spacing:-.02em;color:var(--accent);white-space:nowrap;line-height:1.1}
-.nsum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px}
-.nsum div{border:1px solid var(--line);border-radius:10px;padding:6px 8px;background:var(--card2);font-size:11px;font-weight:800;color:var(--muted);line-height:1.4;min-width:0}
-.nsum b{display:block;font-size:13.5px;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.btn{flex:1 1 90px;border:1px solid var(--line);background:var(--card2);color:var(--fg);font:inherit;font-size:14px;font-weight:800;
-  padding:10px 10px;border-radius:12px;cursor:pointer;min-height:52px;transition:.15s;display:inline-flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:1px;text-align:center;line-height:1.25}
+.net .k{font-size:12.5px;font-weight:800;color:var(--muted)}
+.net .v{font-size:26px;font-weight:900;letter-spacing:-.02em;color:var(--accent);white-space:nowrap;line-height:1.1}
+.nsum{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px}
+.nsum div{border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--card2);font-size:11.5px;font-weight:800;color:var(--muted)}
+.nsum b{display:block;font-size:14px;color:var(--fg)}
+.stat{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.stat li{padding:8px 11px;border-radius:10px;font-size:13px;font-weight:700;line-height:1.55;background:var(--card2)}
+.stat li.ok{background:var(--okbg);color:var(--ok)}
+.stat li.warn{background:var(--warnbg);color:var(--warn)}
+.actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:12px}
+@media (max-width:430px){.actions{grid-template-columns:repeat(2,minmax(0,1fr))}.actions .btn:last-child{grid-column:1 / -1}}
+.btn{border:1px solid var(--line);background:var(--card2);color:var(--fg);font:inherit;font-size:14px;font-weight:800;
+  padding:10px;border-radius:12px;cursor:pointer;min-height:52px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;text-align:center;line-height:1.25}
 .btn i{font-style:normal;font-size:10.5px;font-weight:700;color:var(--muted)}
-.btn:hover:not(:disabled){border-color:var(--accent)}
-.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:hover{border-color:var(--accent)}
 .btn.pri{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;box-shadow:var(--shadow)}
 .btn.pri i{color:rgba(255,255,255,.88)}
-.btn.pri:hover:not(:disabled){filter:brightness(1.06)}
 @media (prefers-color-scheme:dark){.btn.pri{color:var(--afg)}.btn.pri i{color:rgba(4,32,28,.75)}}
-.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:12px}
-#actions.odd .btn:last-child{grid-column:1 / -1}
-/* ── 한 번에 넣기 ── */
-.bulk{border:1px dashed color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:12px;padding:10px;margin:0 0 10px;
-  background:color-mix(in srgb,var(--accent) 5%,var(--card))}
-.bulk .lab{margin-bottom:6px}
-.bulk .tools{margin-top:8px}
-/* ── 링크로 받은 명세서 띠 ── */
-.shbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 0;padding:12px 14px;border-radius:14px;
-  background:var(--okbg);border:1px solid color-mix(in srgb,var(--ok) 35%,transparent)}
-.shbar .t{flex:1 1 240px;min-width:0;font-size:13px;font-weight:700;line-height:1.55}
-.shbar .t b{display:block;font-size:14.5px;font-weight:800;color:var(--ok)}
-.shbar .t small{display:block;font-size:12px;font-weight:600;color:var(--muted)}
-.shbar.warn{background:var(--warnbg);border-color:color-mix(in srgb,var(--warn) 35%,transparent)}
-.shbar.warn .t b{color:var(--warn)}
-body.shared #form{opacity:.88}
-@media (max-width:979px){body.shared .side{order:0}}
-/* ── 수령 확인 서명판 ── */
-.pad{position:relative;margin-top:10px;border:1.5px dashed #b8c9c4;border-radius:12px;background:#fff;touch-action:none;overflow:hidden}
-.pad canvas{display:block;width:100%;height:150px;cursor:crosshair;touch-action:none}
-.pad span{position:absolute;left:12px;bottom:8px;font-size:11.5px;font-weight:700;color:#98aaa5;pointer-events:none}
-.pad.has span{display:none}
+.mini{border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;font-size:13px;font-weight:700;padding:9px 14px;border-radius:999px;cursor:pointer;min-height:42px}
+.mini:hover{border-color:var(--accent)}
 .mini.pri{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
 @media (prefers-color-scheme:dark){.mini.pri{color:var(--afg)}}
-/* ── 링크 ── */
-.linkbox{margin-top:10px;padding:10px;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));background:var(--card2)}
-.linkbox input{display:block;width:100%;font:inherit;font-size:12.5px;font-weight:600;color:var(--fg);background:var(--card);
-  border:1px solid var(--line);border-radius:9px;padding:9px 10px;min-height:42px}
-.linkbox .tools{margin-top:8px}
-.pvbox{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;justify-content:center;
-  background:color-mix(in srgb,var(--line) 45%,var(--card2))}
-.pvbox canvas{display:block;width:100%;height:auto;background:#fff;box-shadow:0 2px 10px -4px rgba(0,0,0,.35)}
-.pvnav{display:flex;gap:6px;align-items:center;justify-content:center;margin-top:8px;font-size:12.5px;font-weight:700;color:var(--muted)}
-.sq{border:1px solid var(--line);background:var(--card2);color:var(--muted);font:inherit;font-size:15px;font-weight:800;
-  width:44px;height:40px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0}
-.sq:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
-.sq:disabled{opacity:.35;cursor:default}
-.checks{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
-.checks li{position:relative;padding:8px 10px 8px 32px;border-radius:10px;font-size:12.5px;font-weight:700;line-height:1.6;background:var(--card2);color:var(--fg)}
-.checks li::before{position:absolute;left:10px;top:8px;font-weight:900}
-.checks li.ok::before{content:'✓';color:var(--ok)}
-.checks li.warn{background:var(--warnbg)} .checks li.warn::before{content:'!';color:var(--warn);left:14px}
-.checks li.bad{background:var(--dangerbg)} .checks li.bad::before{content:'✕';color:var(--danger)}
-.checks li.info::before{content:'i';color:var(--muted);left:14px;font-style:italic}
-.checks li small{display:block;font-size:11.5px;font-weight:600;color:var(--muted)}
-
-.use{list-style:none;margin:0;padding:0}
-.use li{position:relative;padding-left:26px;margin-bottom:13px;font-size:13.5px;font-weight:600;line-height:1.65}
-.use li:last-child{margin-bottom:0}
-.use li::before{content:"▸";position:absolute;left:4px;top:0;color:var(--accent);font-weight:800}
-.use li b{font-weight:800}
-.use li .d{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-top:3px;line-height:1.7}
-@media (min-width:980px){.use{columns:2;column-gap:28px}.use li{break-inside:avoid}}
-.rtab{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;min-width:520px}
-.rtab th,.rtab td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top;line-height:1.55}
-.rtab th{background:var(--card2);font-weight:800}
-.rtab td b{font-weight:800}
-.tscroll{overflow-x:auto;margin-top:6px}
-
-details{border-top:1px solid var(--line);padding:12px 0}
-details:first-of-type{border-top:0}
-summary{cursor:pointer;font-weight:700;font-size:14px;list-style:none;padding:10px 0;margin:-10px 0}
-summary::-webkit-details-marker{display:none}
-summary::before{content:"＋ ";color:var(--accent);font-weight:800}
-details[open] summary::before{content:"－ "}
-details p{margin:8px 0 0;font-size:13.5px;color:var(--muted);line-height:1.8}
-details p b{color:var(--fg)}
-
-footer{text-align:center;color:var(--muted);font-size:12px;margin-top:22px;line-height:1.8}
-footer b{color:var(--fg)}
-
-/* ── 모바일 하단 바 ── 입력하는 동안 미리보기가 화면 밖이면 띄운다 */
-#mbar{position:fixed;left:0;right:0;bottom:0;z-index:50;transform:translateY(115%);transition:transform .22s;
-  background:var(--card);border-top:1px solid var(--line);box-shadow:0 -8px 22px -14px rgba(0,0,0,.55);
-  padding:9px 14px calc(9px + env(safe-area-inset-bottom))}
-#mbar.on{transform:none}
-#mbar .in{max-width:700px;margin:0 auto;display:flex;align-items:center;gap:10px}
-#mbar .k{flex:1 1 auto;min-width:0;font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.03em}
-#mbar .k b{display:block;font-size:14.5px;font-weight:900;color:var(--accent);letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#mbar .go{flex:0 0 auto;font:inherit;font-size:13px;font-weight:800;color:#fff;padding:10px 15px;border-radius:999px;border:0;cursor:pointer;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));min-height:42px}
-@media (prefers-color-scheme:dark){#mbar .go{color:var(--afg)}}
-@media (min-width:980px){#mbar{display:none}}
-/* 휴대폰 — 사람 → 시급·기간 → 시간표 → 달력 → 수당·공제 → 명세서 순서 */
-@media (max-width:979px){
-  #form{display:contents}
-  #infoCard{order:1} #payCard{order:2} #schCard{order:3} #calCard{order:4} #dedCard{order:5} .side{order:6}
-}
-
-#toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#0f1f1c;color:#fff;font-size:13.5px;font-weight:700;line-height:1.5;
+.tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pages{display:flex;flex-direction:column;gap:12px;margin-top:12px;padding:10px;border-radius:12px;border:1px solid var(--line);background:color-mix(in srgb,var(--line) 45%,var(--card2))}
+.pages canvas{display:block;width:100%;height:auto;background:#fff;box-shadow:0 2px 10px -4px rgba(0,0,0,.35)}
+.fine{font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.7;margin:8px 0 0}
+.fine b{color:var(--fg)}
+.pad{position:relative;margin-top:10px;border:1.5px dashed #b8c9c4;border-radius:12px;background:#fff;touch-action:none;overflow:hidden}
+.pad canvas{display:block;width:100%;height:160px;cursor:crosshair;touch-action:none}
+.pad span{position:absolute;left:12px;bottom:8px;font-size:11.5px;font-weight:700;color:#98aaa5;pointer-events:none}
+.pad.has span{display:none}
+.note{border-radius:11px;padding:10px 12px;font-size:13px;font-weight:700;line-height:1.65;margin-top:10px;background:var(--okbg);color:var(--ok)}
+.iabar{display:flex;align-items:center;gap:10px;margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--warnbg);font-size:12.5px;font-weight:700;line-height:1.5}
+.iabar span{flex:1 1 auto}
+.iabar button{flex:0 0 auto;font:inherit;font-size:12.5px;font-weight:800;color:#fff;border:0;border-radius:999px;padding:9px 14px;min-height:38px;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+#doneCard{border-color:color-mix(in srgb,var(--ok) 40%,var(--line))}
+.dmsg{margin:0;font-size:14px;font-weight:700;line-height:1.6}
+.err{text-align:center;padding:30px 18px}
+.err b{display:block;font-size:17px;margin-bottom:8px}
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:20px;line-height:1.8}
+footer a{color:var(--accent);font-weight:800}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#0f1f1c;color:#fff;font-size:13.5px;font-weight:700;line-height:1.5;
   padding:10px 16px;border-radius:14px;width:max-content;opacity:0;pointer-events:none;transition:.25s;z-index:99;max-width:92vw;text-align:center}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 @media (prefers-color-scheme:dark){#toast{background:#e8f4f1;color:#04201c}}
-
-@media (max-width:430px){
-  .card{padding:14px}
-  .lab{flex-direction:column;align-items:stretch;gap:2px}
-  .lab .hint{text-align:left}
-  .seg button{flex:1 1 70px;font-size:12.5px}
-  .tag{font-size:14px}
-  .cc{min-height:52px}
-  .cc .tg{font-size:9px;letter-spacing:-.03em}
-  .cc:not(.hol) .tg{display:none}
-  .net .v{font-size:22px}
-}
-
-/* ══ 주의 문구 ══ */
-.nbx{border:1px solid var(--warn);border-radius:14px;background:var(--warnbg);padding:14px 15px;margin-top:14px}
-.nbx-h{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:800;color:var(--warn);margin:0 0 10px}
-.nbx-h .ic{flex:0 0 auto;width:19px;height:19px;border-radius:6px;background:var(--warn);color:var(--warnbg);
-  font-size:12px;font-weight:800;display:grid;place-items:center;line-height:1}
-.nbx ul{list-style:none;margin:0;padding:0}
-.nbx li{position:relative;padding-left:12px;margin-bottom:7px;font-size:12px;font-weight:600;line-height:1.68;color:var(--warn)}
-.nbx li:last-child{margin-bottom:0}
-.nbx li::before{content:"·";position:absolute;left:1px;top:-1px;font-weight:800}
-.nbx li b{font-weight:800}
-.nbx .nbx-f{margin:11px 0 0;padding-top:10px;border-top:1px solid color-mix(in srgb,var(--warn) 32%,transparent);
-  font-size:12px;font-weight:700;line-height:1.72;color:var(--warn)}
-.nbx .nbx-f b{font-weight:800}
-
-/* ── 인쇄 — 명세서 쪽만 종이에 싣는다(화면은 빠진다) ── */
 #printArea{display:none}
 @media print{
   body.printing > *:not(#printArea){display:none !important}
@@ -406,411 +103,68 @@ footer b{color:var(--fg)}
 </head>
 <body>
 <div class="wrap">
+  <div class="top">
+    <a class="brand" href="./"><span class="ico">🧾</span><span>임금명세서</span></a>
+    <span class="ro">🔒 보기 전용</span>
+  </div>
+  <div class="iabar hide" id="iabar"><span id="iaMsg">앱 안에서는 PDF·이미지 저장이 안 될 수 있어요.</span><button type="button" id="iaGo">다른 브라우저로 열기</button></div>
 
+  <section class="card err hide" id="vErr">
+    <b>명세서를 열 수 없습니다</b>
+    <p class="fine">링크가 잘렸거나 올바르지 않습니다. 받은 링크를 끝까지 한 번에 복사했는지 확인하고, 보낸 사람에게 다시 받아 주세요.</p>
+    <div class="tools" style="justify-content:center"><a class="mini pri" href="./" style="text-decoration:none">명세서 만들기로 가기</a></div>
+  </section>
 
-<!-- 네이버·카카오 앱 안에서 열렸을 때만 보이는 띠 (body.inapp) -->
-<div class="iabar" id="iabar">
-  <div class="ia-t"><span id="iaMsg">앱 안에서 열려서 PDF·이미지 저장이 안 될 수 있어요.</span>
-    <small id="iaSub">입력하기 전에 옮기면 다시 적지 않아도 됩니다.</small></div>
-  <button class="ia-go" id="iaGo" type="button">크롬에서 열기</button>
-  <button class="ia-x" id="iaX" type="button" aria-label="안내 닫기">✕</button>
-</div>
-
-<header>
-  <div class="logo"><span class="ico">🧾</span><span>시급 임금명세서</span></div>
-  <p class="tag"><b>시급</b>과 <b>출퇴근 시간</b>만 넣으면 주휴수당·가산수당·공제까지 계산된 <b>임금명세서</b>를&nbsp;만들어&nbsp;줍니다</p>
-  <div class="badges">
-    <span class="badge">🔒 급여 정보가 서버로 전송되지 않음</span>
-    <span class="badge gray">2026 최저시급 10,320원 · 2027년 10,700원</span>
-    <span class="badge gray">계산방법 자동 기재</span>
-    <span class="badge gray">PDF · 이미지 · 인쇄</span>
-  </div>
-</header>
-
-
-<div class="layout">
-<main id="form">
-
-<!-- 1. 사람 -->
-<section class="card" id="infoCard">
-  <h2><span><span class="n">1</span>누구의 명세서인가요</span><span class="h2r" id="staffCnt"></span></h2>
-  <div class="chips hide" id="staffList" aria-label="저장한 직원"></div>
-  <div class="grid2" style="margin-top:10px">
-    <label class="nf"><span>근로자 이름</span><input type="text" id="inName" placeholder="홍길동" autocomplete="off" maxlength="20"></label>
-    <label class="nf"><span>생년월일 또는 사원번호</span><input type="text" id="inBirth" placeholder="2000.01.01" autocomplete="off" maxlength="20"></label>
-    <label class="nf"><span>사업장 이름</span><input type="text" id="inBiz" placeholder="○○카페" autocomplete="off" maxlength="30"></label>
-    <label class="nf"><span>대표자 (선택)</span><input type="text" id="inBoss" placeholder="대표 이름" autocomplete="off" maxlength="20"></label>
-  </div>
-  <div class="tools">
-    <button class="mini" id="saveStaff" type="button">💾 이 직원 저장</button>
-    <button class="mini" id="newStaff" type="button">＋ 새 직원</button>
-    <button class="mini pri" id="fillSample" type="button">✨ 예시로 채우기</button>
-  </div>
-  <div class="row" style="margin-top:14px">
-    <div class="lab">사업장 규모<span class="hint">상시 근로자 수(알바 포함)</span></div>
-    <div class="seg" id="segSize">
-      <button type="button" data-v="5">5명 이상<i>연장·야간·휴일 가산 · 공휴일 유급</i></button>
-      <button type="button" data-v="4">5명 미만<i>가산수당 없음 · 주휴수당은 있음</i></button>
-    </div>
-  </div>
-</section>
-
-<!-- 2. 시급·기간 -->
-<section class="card" id="payCard">
-  <h2><span><span class="n">2</span>시급과 급여 기간</span><span class="h2r" id="minTag"></span></h2>
-  <div class="grid2">
-    <label class="nf won"><span>시급</span><input type="text" inputmode="numeric" id="inWage" autocomplete="off"></label>
-    <label class="nf"><span>임금 지급일</span><input type="date" id="inPay"></label>
-  </div>
-  <div class="chips" id="wageChips"></div>
-  <div class="row">
-    <div class="lab">급여 기간<span class="hint" id="perHint"></span></div>
-    <div class="grid2">
-      <label class="nf"><span>연도</span><select id="selY"></select></label>
-      <label class="nf"><span>월</span><select id="selM"></select></label>
-    </div>
-    <div class="seg sm" id="segCut" style="margin-top:8px">
-      <button type="button" data-v="m">1일 ~ 말일</button>
-      <button type="button" data-v="c">마감일이 따로 있어요</button>
-    </div>
-    <div class="grid2 hide" id="cutBox" style="margin-top:8px">
-      <label class="nf"><span>시작일</span><input type="date" id="inPs"></label>
-      <label class="nf"><span>마지막 날</span><input type="date" id="inPe"></label>
-    </div>
-  </div>
-</section>
-
-<!-- 3. 요일별 시간표 -->
-<section class="card" id="schCard">
-  <h2><span><span class="n">3</span>요일별 근무 시간</span><span class="h2r" id="schTag"></span></h2>
-  <p class="fine" style="margin:0 0 10px">근로계약서에 적은 <b>일하는 요일과 시간</b>을 넣으세요. 이 시간표대로 달력이 채워지고, 주휴수당도 이 시간(소정근로시간)으로 셉니다.</p>
-  <div class="bulk" id="bulk">
-    <div class="lab">한 번에 넣기<span class="hint">시간을 고르고 적용할 요일을 누르세요</span></div>
-    <div class="tm" id="bulkTm"></div>
-    <div class="tools">
-      <button class="mini pri" type="button" data-bulk="wd">월~금에 적용</button>
-      <button class="mini" type="button" data-bulk="we">토·일에 적용</button>
-      <button class="mini" type="button" data-bulk="on">켜 둔 요일 모두</button>
-    </div>
-  </div>
-  <div class="sched" id="sched"></div>
-  <div class="ssum" id="schSum"></div>
-  <div class="row">
-    <div class="lab">공휴일 (빨간 날)<span class="hint">근무 요일에 걸린 설·추석·대체공휴일 등</span></div>
-    <div class="seg sm" id="segHol">
-      <button type="button" data-v="rest">쉼 (기본)<i>5명 이상은 쉬어도 유급</i></button>
-      <button type="button" data-v="work">시간표대로 근무<i>5명 이상은 1.5배</i></button>
-    </div>
-  </div>
-  <div class="row">
-    <div class="lab">주휴일<span class="hint">한 주가 끝나는 날 · 보통 일요일</span></div>
-    <select class="sel" id="selWhd"></select>
-    <div class="seg sm" id="segWhd" style="margin-top:8px">
-      <button type="button" data-v="rest">주휴일에 쉼 (기본)<i>시간표에 있어도 빼고 셉니다</i></button>
-      <button type="button" data-v="work">주휴일에 근무<i>5명 이상은 1.5배 · 주휴수당은 그대로</i></button>
-    </div>
-  </div>
-</section>
-
-<!-- 4. 근무 달력 -->
-<section class="card" id="calCard">
-  <h2><span><span class="n">4</span>이번 달 근무 달력</span><span class="h2r" id="calTag"></span></h2>
-  <p class="fine" style="margin:0 0 10px">시간표와 다르게 일한 날만 <b>날짜를 눌러</b> 고치세요 — 더 일한 날, 결근, 쉬기로 한 날, 연차. 흐린 칸은 앞뒤 달이라 <b>주휴수당 판정</b>에만 씁니다.</p>
-  <div class="seg sm" id="segCal0" style="margin:0 0 10px">
-    <button type="button" data-v="1">월요일부터</button>
-    <button type="button" data-v="0">일요일부터 (일월화수목금토)</button>
-  </div>
-  <div class="calh" id="calHead"></div>
-  <div class="calg" id="calGrid"></div>
-  <div class="legend">
-    <span><i style="background:color-mix(in srgb,var(--accent) 18%,var(--card))"></i>근무</span>
-    <span><i style="background:var(--dangerbg)"></i>결근</span>
-    <span><i style="background:var(--okbg)"></i>연차(유급)</span>
-    <span><i style="background:var(--warn);border-radius:50%;width:8px;height:8px"></i>시간표와 다름</span>
-  </div>
-  <div class="dayed hide" id="dayEd"></div>
-  <div class="sub-h">주휴수당 · 주마다</div>
-  <div class="weeks" id="weeks"></div>
-  <div class="tools"><button class="mini danger" id="resetCal" type="button">↺ 시간표대로 다시 채우기</button></div>
-</section>
-
-<!-- 5. 수당·공제 -->
-<section class="card" id="dedCard">
-  <h2><span><span class="n">5</span>추가 수당과 공제</span></h2>
-  <div class="lab">더 주는 돈<span class="hint">식대·교통비·상여금 등</span></div>
-  <div id="extras"></div>
-  <div class="tools" id="extraAdd">
-    <button class="mini" type="button" data-n="식대" data-tf="1">＋ 식대 <span style="color:var(--muted)">비과세</span></button>
-    <button class="mini" type="button" data-n="교통비">＋ 교통비</button>
-    <button class="mini" type="button" data-n="상여금">＋ 상여금</button>
-    <button class="mini" type="button" data-n="">＋ 직접 입력</button>
-  </div>
-
-  <div class="sub-h">빼는 돈 (공제)</div>
-  <div class="seg" id="segDed" style="margin-top:10px">
-    <button type="button" data-v="none">공제 없음<i>세금·보험 없이</i></button>
-    <button type="button" data-v="ins">4대보험·소득세<i>근로소득 · 간이세액</i></button>
-    <button type="button" data-v="biz">3.3%<i>사업소득 원천징수</i></button>
-    <button type="button" data-v="day">일용직<i>하루 15만원 공제</i></button>
-  </div>
-  <div id="insBox" class="hide">
-    <div class="grid2" style="margin-top:8px">
-      <label class="chk"><input type="checkbox" id="cNp"><span>국민연금<i id="npRate"></i></span></label>
-      <label class="chk"><input type="checkbox" id="cHi"><span>건강·장기요양<i id="hiRate"></i></span></label>
-      <label class="chk"><input type="checkbox" id="cEi"><span>고용보험<i>0.9%</i></span></label>
-      <label class="chk"><input type="checkbox" id="cTax"><span>소득세<i>간이세액표</i></span></label>
-    </div>
-    <div class="grid2" id="famBox">
-      <label class="nf"><span>공제대상 가족 수 (본인 포함)</span><select id="selFam"></select></label>
-      <label class="nf"><span>그중 8~20세 자녀</span><select id="selKids"></select></label>
-    </div>
-  </div>
-  <div id="dayBox" class="hide">
-    <label class="chk"><input type="checkbox" id="cDayEi"><span>고용보험 0.9%도 뗀다<i>일용근로자도 고용보험 대상입니다</i></span></label>
-  </div>
-  <table class="dtab" id="dedTab"></table>
-  <div class="note info hide" id="dedNote"></div>
-
-  <div class="lab" style="margin-top:16px">그 밖에 빼는 돈<span class="hint">가불금 등 · 근로자 동의가 있어야 합니다</span></div>
-  <div id="minus"></div>
-  <div class="tools"><button class="mini" id="addMinus" type="button">＋ 공제 항목 추가</button></div>
-</section>
-
-</main>
-
-<aside class="side" id="side">
-  <section class="card" id="pvCard">
-    <h2><span>임금명세서</span><span class="h2r" id="pvState"></span></h2>
-    <div class="net"><div class="k">실수령액<small id="netSub"></small></div><div class="v" id="netV">0원</div></div>
-    <div class="nsum">
-      <div>지급액 계<b id="sPay">0원</b></div>
-      <div>공제액 계<b id="sDed">0원</b></div>
-      <div>근로시간<b id="sHrs">0시간</b></div>
-    </div>
-    <div class="actions" id="actions">
-      <button class="btn pri" id="dlPdf" type="button">PDF로 저장<i>A4 한 장</i></button>
-      <button class="btn" id="dlPng" type="button">이미지로 저장<i>PNG · 카톡 전송용</i></button>
-      <button class="btn" id="doLink" type="button">링크 만들기<i>보내기 · 보관</i></button>
-      <button class="btn" id="doPrint" type="button">인쇄<i>A4</i></button>
-    </div>
-    <div class="linkbox hide" id="linkBox">
-      <input type="text" id="linkUrl" readonly aria-label="명세서 링크">
-      <div class="tools"><button class="mini pri" id="linkCopy" type="button">링크 복사</button><button class="mini hide" id="linkShare" type="button">보내기</button><button class="mini" id="linkHide" type="button">닫기</button></div>
-      <p class="fine" id="linkNote"></p>
-    </div>
-    <div class="row" style="margin-top:12px">
-      <div class="lab">근무 기록<span class="hint">명세서 아래에 붙는 날짜별 기록</span></div>
-      <div class="seg sm" id="segLog">
-        <button type="button" data-v="none">넣지 않음</button>
-        <button type="button" data-v="list">목록형</button>
-        <button type="button" data-v="cal">달력형</button>
+  <div id="vMain" class="hide">
+    <section class="card" id="vHead">
+      <p class="who" id="vTitle"></p>
+      <p class="per" id="vSub"></p>
+      <div class="net"><div class="k">실수령액</div><div class="v" id="vNet"></div></div>
+      <div class="nsum"><div>지급액 계<b id="vPay"></b></div><div>공제액 계<b id="vDed"></b></div></div>
+      <ul class="stat" id="vStat"></ul>
+      <div class="actions">
+        <button class="btn pri" id="dlPdf" type="button">PDF로 저장<i>A4</i></button>
+        <button class="btn" id="dlPng" type="button">이미지로 저장<i>PNG</i></button>
+        <button class="btn" id="doPrint" type="button">인쇄<i>A4</i></button>
       </div>
-    </div>
-    <label class="chk"><input type="checkbox" id="cPyck"><span>지급 확인란 넣기 (사업주)<i>「위와 같이 지급합니다」 · 지급일 · 사업장 이름과 (인)</i></span></label>
-    <label class="chk" id="rowBsig" style="padding-left:29px"><input type="checkbox" id="cBsig"><span>사업주도 서명하기<i>(인) 자리에 도장 대신 손 서명 · 아래 서명판에서 「사업주 서명」 선택</i></span></label>
-    <label class="chk"><input type="checkbox" id="cRcpt"><span>수령 확인란 넣기 (근로자)<i>근로자가 받았다는 서명 칸 · 아래에서 손가락으로 서명</i></span></label>
-    <div class="pvbox"><canvas id="pv" width="10" height="10" aria-label="임금명세서 미리보기"></canvas></div>
-    <div class="pvnav hide" id="pvNav"><button class="sq" id="pvPrev" type="button" aria-label="앞 쪽">‹</button><span id="pvPos">1 / 1쪽</span><button class="sq" id="pvNext" type="button" aria-label="다음 쪽">›</button></div>
-    <ul class="checks" id="checks"></ul>
-  </section>
+      <p class="fine">이 화면은 링크에 담긴 명세서를 <b>보여 주기만</b> 합니다. 내용은 고칠 수 없고, 어디에도 저장·전송되지 않습니다.</p>
+    </section>
 
-  <!-- 수령 확인 — 근로자가 손가락으로 서명하면 명세서 「수령 확인」 칸에 들어간다 -->
-  <section class="card hide" id="rcCard">
-    <h2><span id="rcTitle">수령 확인 · 근로자 서명</span><span class="h2r" id="rcState"></span></h2>
-    <div class="seg sm hide" id="segSigT" style="margin-bottom:10px">
-      <button type="button" data-v="w">근로자 서명<i>수령 확인 칸</i></button>
-      <button type="button" data-v="b">사업주 서명<i>지급 확인 칸</i></button>
-    </div>
-    <p class="fine" style="margin-top:0" id="rcDesc"></p>
-    <div class="pad" id="pad"><canvas id="sigPad" aria-label="서명판"></canvas><span>여기에 서명하세요</span></div>
-    <div class="tools">
-      <button class="mini" id="sigClear" type="button">지우기</button>
-      <button class="mini pri" id="sigOk" type="button">서명 넣기</button>
-      <button class="mini danger hide" id="sigDel" type="button">서명 빼기</button>
-    </div>
-    <div class="note info hide" id="rcDone"></div>
-  </section>
+    <section class="card hide" id="doneCard">
+      <h2><span id="doneTitle">저장했습니다</span><button class="mini" id="doneHide" type="button">닫기</button></h2>
+      <p class="dmsg" id="doneMsg"></p>
+    </section>
 
-  <!-- 저장·인쇄·링크 복사 뒤 안내 카드 — 화면을 덮지 않고 명세서 카드 아래에 펼친다 -->
-  <section class="card hide" id="doneCard">
-    <h2><span id="doneTitle">저장했습니다</span><button class="mini" id="doneHide" type="button">닫기</button></h2>
-    <p class="dmsg" id="doneMsg"></p>
-    <ol class="dsteps">
-      <li>임금명세서는 <b>임금을 줄 때마다</b> 함께 줘야 합니다. 종이 대신 <b>카톡·문자·이메일</b>로 보내도 교부로 인정됩니다.</li>
-      <li>보내기 전에 <b>근무 기록과 금액</b>을 근로자와 한 번 맞춰 보세요. 달력에서 날짜를 누르면 고칠 수 있습니다.</li>
-      <li>명세서와 근무 기록은 <b>3년 동안 보관</b>하세요(근로기준법 제42조, 임금대장·서류 보존).</li>
-    </ol>
-    <p class="dwarn hide" id="doneInapp">파일이 안 보이나요? 앱 안 브라우저는 내려받기가 막혀 있습니다.
-      <button type="button" id="doneGo">다른 브라우저로 열기</button></p>
-  </section>
-</aside>
-</div>
+    <section class="card hide" id="rcCard">
+      <h2><span>수령 확인 · 근로자 서명</span></h2>
+      <p class="fine" style="margin-top:0">명세서를 받고 금액을 확인했다면 아래에 손가락으로 서명하세요. 서명은 명세서 「수령 확인」 칸에 들어가고,
+        <b>서명한 링크를 보낸 사람에게 돌려보내면</b> 확인이 끝납니다. 명세서 내용은 바뀌지 않습니다.</p>
+      <div class="pad" id="pad"><canvas id="sigPad" aria-label="서명판"></canvas><span>여기에 서명하세요</span></div>
+      <div class="tools">
+        <button class="mini" id="sigClear" type="button">지우기</button>
+        <button class="mini pri" id="sigOk" type="button">서명 넣기</button>
+      </div>
+    </section>
 
-<section class="card">
-  <h2><span>이렇게 계산합니다</span></h2>
-  <div class="tscroll">
-  <table class="rtab">
-    <tr><th>항목</th><th>계산</th><th>언제</th></tr>
-    <tr><td><b>기본급</b></td><td>시급 × 일한 시간(휴게 뺀 시간)</td><td>모든 근무. 연장·휴일근로 시간은 아래 수당에서 따로 셉니다</td></tr>
-    <tr><td><b>주휴수당</b></td><td>시급 × 주 약속 시간 ÷ 40 × 8시간 (최대 8시간)</td><td>한 주 약속 시간이 <b>15시간 이상</b>이고 그 주에 <b>결근이 없을 때</b> · 사업장 규모와 무관</td></tr>
-    <tr><td><b>연장근로수당</b></td><td>시급 × 1.5 × 시간</td><td>5명 이상 · 하루 8시간·주 40시간을 넘긴 시간, 단시간 근로자는 <b>약속한 시간을 넘긴 시간</b></td></tr>
-    <tr><td><b>야간근로수당</b></td><td>시급 × 0.5 × 시간 (기본급에 더해)</td><td>5명 이상 · 밤 10시 ~ 아침 6시에 일한 시간</td></tr>
-    <tr><td><b>휴일근로수당</b></td><td>시급 × 1.5 (8시간까지) · × 2 (넘는 시간)</td><td>5명 이상 · 주휴일·공휴일에 일한 시간</td></tr>
-    <tr><td><b>유급휴일수당</b></td><td>시급 × 그 요일 약속 시간</td><td>근무 요일에 걸린 <b>공휴일</b>(5명 이상)과 <b>노동절</b>(모든 사업장) · 쉬어도 받습니다</td></tr>
-  </table>
+    <section class="card hide" id="sendCard">
+      <h2><span>서명했습니다</span></h2>
+      <p class="dmsg" id="sendMsg"></p>
+      <div class="tools"><button class="mini pri" id="sigSend" type="button">서명한 링크 보내기</button><button class="mini" id="sigUndo" type="button">서명 지우고 다시</button></div>
+    </section>
+
+    <section class="card">
+      <h2><span>명세서</span><span id="vPages"></span></h2>
+      <div class="pages" id="pages"></div>
+      <div class="tools"><button class="mini" id="copyHere" type="button">🔗 이 링크 복사 (보관용)</button></div>
+    </section>
   </div>
-  <p class="fine">금액은 항목마다 원 단위에서 반올림합니다. 휴게시간이 밤 10시를 걸치면 휴게를 근무 시간 전체에 고르게 나눠 야간 시간을 셉니다.
-    공제는 2026년 요율(국민연금 4.75%·건강보험 3.595%·장기요양 건강보험료의 13.14%·고용보험 0.9%)이고, 2027년 1월분부터는 국민연금 5%(연금 개혁 일정)·건강보험 3.595%(동결)를 씁니다.
-    <b>2027년 장기요양보험료율은 아직 정해지지 않아</b> 2026년 비율로 계산합니다.</p>
-</section>
 
-<section class="card">
-  <h2><span>이럴 때 씁니다</span></h2>
-  <ul class="use">
-    <li><b>알바생 월급날, 명세서를 같이 보내야 할 때</b>
-      <span class="d">시급과 요일별 시간만 넣으면 달력대로 시간을 세서 명세서가 나옵니다. PDF·이미지로 저장해 <b>카톡으로 보내면</b> 교부 끝.</span></li>
-    <li><b>시간이 들쭉날쭉한 달</b>
-      <span class="d">대타로 더 일한 날, 결근한 날, 쉬기로 한 날만 달력에서 눌러 고치면 주휴수당이 주마다 다시 판정됩니다.</span></li>
-    <li><b>추석·설 연휴가 낀 달</b>
-      <span class="d">5명 이상 사업장이면 근무 요일에 걸린 공휴일은 쉬어도 유급, 일하면 1.5배입니다. 2026년부터 공휴일이 된 <b>노동절·제헌절</b>과 대체공휴일도 들어 있습니다.</span></li>
-    <li><b>알바생이 내 월급이 맞는지 확인할 때</b>
-      <span class="d">받은 돈과 명세서 금액을 맞춰 보세요. 주휴수당이 빠졌는지, 최저시급보다 낮은지 오른쪽 점검 목록에 바로 나옵니다.</span></li>
-  </ul>
-</section>
-
-<section class="card">
-  <h2><span>자주 묻는 것</span></h2>
-
-  <details>
-    <summary>알바 한 명뿐인데도 임금명세서를 줘야 하나요?</summary>
-    <p>줘야 합니다. 2021년 11월 19일부터 <b>근로기준법 제48조 제2항</b>으로 모든 사업장이 임금을 줄 때 명세서를 함께 줘야 하고,
-      <b>근로자 수·근무 시간과 상관없이</b> 알바·단시간 근로자도 포함됩니다. 안 주거나 필수 항목을 빠뜨리면 <b>500만원 이하 과태료</b> 대상입니다.
-      적어야 할 것은 시행령 제27조의2의 여섯 가지 — 근로자를 알아볼 정보, 지급일, 임금 총액, 항목별 금액, <b>시간에 따라 달라지는 항목의 계산방법</b>(연장·야간·휴일은 시간 수 포함), 공제 내역입니다.
-      시급제는 거의 모든 항목이 시간에 따라 달라지므로 이 도구는 항목마다 계산방법을 자동으로 적습니다.</p>
-  </details>
-
-  <details>
-    <summary>주휴수당은 어떤 주에 생기나요?</summary>
-    <p>한 주에 일하기로 약속한 시간(소정근로시간)이 <b>15시간 이상</b>이고, 그 주의 근무일에 <b>결근하지 않았으면</b> 생깁니다.
-      금액은 <b>주 약속 시간 ÷ 40 × 8시간</b>만큼의 시급입니다(주 40시간 이상이면 8시간). 주 20시간이면 4시간분입니다.
-      지각·조퇴는 결근이 아니라 주휴수당이 그대로 생기고, 서로 합의해 쉰 날은 달력에서 「쉬는 날」로 두면 됩니다(그만큼 그 주 약속 시간이 줄어듭니다).
-      달력 아래 주마다 판정 결과와 이유가 나오고, 사정이 있으면 주마다 넣고 뺄 수 있습니다.</p>
-  </details>
-
-  <details>
-    <summary>달이 바뀌는 주의 주휴수당은 어느 달에 넣나요?</summary>
-    <p>이 도구는 <b>주휴일(한 주의 마지막 날)이 들어 있는 달</b>의 명세서에 넣습니다. 예를 들어 9월 28일(월)~10월 4일(일) 주는 10월분에 들어갑니다.
-      매달 같은 규칙으로 만들면 빠지거나 두 번 들어가는 주가 없습니다. 그래서 달력에는 앞뒤 달 날짜도 흐리게 보이고, 그 날짜의 근무도 주휴 판정에 씁니다.
-      회사가 다른 규칙(예: 그달 근무일 비율로 나누기)을 쓰고 있다면 그 규칙대로 주마다 넣고 빼 주세요.</p>
-  </details>
-
-  <details>
-    <summary>5명 미만 사업장이면 무엇이 달라지나요?</summary>
-    <p>상시 근로자 4명 이하 사업장에는 근로기준법 제56조(연장·야간·휴일 가산)와 제55조 제2항(공휴일 유급휴일)이 적용되지 않습니다.
-      그래서 밤에 일해도, 8시간을 넘겨도 <b>시급 그대로</b>입니다. 반면 <b>주휴수당은 5명 미만도 똑같이</b> 줘야 하고,
-      <b>노동절(5월 1일)</b>은 별도 법률로 정한 유급휴일이라 사업장 규모와 상관없이 유급입니다. 근로자 수에는 알바·단시간 근로자도 들어갑니다.</p>
-  </details>
-
-  <details>
-    <summary>알바가 약속보다 1시간 더 일했는데, 8시간이 안 돼도 가산인가요?</summary>
-    <p>5명 이상 사업장이면 그렇습니다. 기간제법 제6조는 <b>단시간 근로자가 약속한 시간을 넘겨 일한 시간</b>에 50%를 더 주도록 정합니다(하루 8시간이 안 돼도).
-      그래서 달력에서 그날 퇴근 시간을 늦추면 넘긴 시간만큼 연장근로수당이 붙습니다. 대타가 아니라 <b>근무일을 서로 바꾼 날</b>이면
-      날짜 편집 칸의 「근무일을 바꾼 날」을 켜 두세요 — 그날은 가산하지 않습니다. 5명 미만 사업장은 이 조항도 적용되지 않습니다.</p>
-  </details>
-
-  <details>
-    <summary>공휴일에 쉬었는데 돈을 받나요?</summary>
-    <p>5명 이상 사업장은 2022년부터 관공서 공휴일(설·추석 연휴, 대체공휴일 포함)이 민간에서도 <b>유급휴일</b>입니다.
-      시급제라면 <b>그 공휴일이 원래 일하는 요일일 때</b> 그날 약속 시간만큼 유급휴일수당을 받고, 그날 일했다면 휴일근로수당(1.5배)이 따로 더해집니다.
-      원래 쉬는 요일에 걸린 공휴일은 해당하지 않습니다. 도구는 근무 요일에 걸린 공휴일을 <b>기본으로 「쉼」</b>으로 채우고, 공휴일에도 일하는 가게는 요일별 근무 시간 아래 「공휴일」에서 「시간표대로 근무」를 고르면 됩니다. 임시공휴일은 정부가 발표한 뒤에 도구에 들어가니, 없으면 달력에서 직접 조정하세요.</p>
-  </details>
-
-  <details>
-    <summary>4대보험과 3.3% 중 무엇으로 떼야 하나요?</summary>
-    <p>사장님이 시간과 장소를 정해 일을 시키는 알바는 <b>근로자</b>라 원칙은 근로소득(4대보험·간이세액)입니다.
-      3.3%는 프리랜서 같은 <b>사업소득</b>을 원천징수하는 방식이라, 근로자에게 쓰면 뒤에 4대보험 소급·세금 문제가 생길 수 있습니다.
-      다만 <b>월 60시간 미만</b>(대략 주 15시간 미만) 단시간 근로자는 국민연금·건강보험 가입 대상에서 빠지고, 고용보험도 원칙적으로 빠집니다(3개월 이상 계속 일하면 고용보험 적용).
-      도구가 이번 달 시간을 보고 해당하는지 알려 줍니다. 자동으로 계산한 공제액은 칸에 직접 적어 고칠 수 있습니다.</p>
-  </details>
-
-  <details>
-    <summary>소득세가 0원으로 나와요</summary>
-    <p>정상입니다. 매달 떼는 소득세는 국세청 <b>근로소득 간이세액표</b>로 정하는데, 공제대상 가족이 본인 1명일 때 <b>월 과세 급여 약 106만원 이하</b>는 세액이 0원입니다.
-      가족 수를 늘리면 0원 구간이 더 넓어집니다. 식대처럼 비과세로 표시한 돈은 과세 급여에서 빠집니다(식대는 월 20만원까지).</p>
-  </details>
-
-  <details>
-    <summary>「링크 만들기」로 보낸 명세서는 어디에 저장되나요?</summary>
-    <p>어디에도 저장되지 않습니다. 명세서 입력값을 압축해 <b>주소의 # 뒤</b>에 담아 두는 방식이라, 링크를 열면 그 브라우저가 같은 명세서를 다시 그립니다.
-      # 뒤의 내용은 인터넷 주소 규칙상 서버로 전송되지 않습니다. 그래서 링크를 메모나 카톡 「나와의 채팅」에 붙여 두면 몇 달 뒤에도 같은 명세서를 열 수 있고,
-      반대로 <b>링크를 가진 사람은 누구나 내용을 볼 수 있으니</b> 받을 사람에게만 보내세요. 링크로 연 화면은 보기 전용이고 받는 사람의 브라우저 기록을 덮지 않습니다.</p>
-  </details>
-
-  <details>
-    <summary>근로자 수령 확인 서명은 어떻게 받나요?</summary>
-    <p>두 가지 방법이 있습니다. ① 같이 있을 때 명세서 아래 <b>서명판</b>에 근로자가 손가락으로 서명하고 「서명 넣기」. ② <b>링크 만들기</b>로 보내면 근로자가 자기 휴대폰에서 명세서를 열어 서명하고,
-      「서명한 링크 보내기」로 돌려보냅니다. 받은 링크를 열면 맨 위에 「○○ 님이 ○월 ○일에 수령 확인 서명」이 뜨고 명세서 「수령 확인」 칸에 서명이 들어가 있습니다.
-      사업주도 「사업주도 서명하기」를 켜면 서명판에서 「사업주 서명」을 골라 지급 확인 칸의 (인) 자리에 손 서명을 넣을 수 있습니다.
-      지급 확인란·수령 확인란은 각각 끌 수 있습니다. 서명한 뒤 금액·날짜·이름이 하나라도 바뀌면 <b>서명은 자동으로 빠집니다</b>. 이 서명은 받았다는 확인용 메모이며 공인 전자서명은 아닙니다.</p>
-  </details>
-
-  <details>
-    <summary>카톡으로 보내도 교부한 것이 되나요?</summary>
-    <p>됩니다. 근로기준법은 임금명세서를 <b>서면(전자문서 포함)</b>으로 주라고 정해 이메일·문자·메신저로 보내는 것도 인정됩니다.
-      「이미지로 저장」은 휴대폰에서 바로 보기 좋은 그림 한 장이고, 휴대폰에서는 「바로 보내기」로 카톡 공유 창을 열 수 있습니다.
-      다만 가게 게시판에 붙여 두는 것처럼 본인에게 따로 전달하지 않는 방식은 교부가 아닙니다.</p>
-  </details>
-
-  <details>
-    <summary>입력한 급여 정보는 어디에 남나요?</summary>
-    <p>서버로 보내지 않습니다. 계산·명세서 그리기·PDF 만들기가 모두 이 브라우저 안에서 끝납니다.
-      다음 달에 다시 쓰기 편하도록 입력 내용과 「이 직원 저장」한 목록은 <b>이 기기의 브라우저에만</b> 남고, 칩의 ✕ 를 누르면 지워집니다.
-      공용 PC에서 썼다면 저장한 직원을 지우고 창을 닫으세요.</p>
-  </details>
-
-  <details>
-    <summary>네이버·카카오톡 앱에서 열었더니 저장이 안 돼요</summary>
-    <p>앱 안에서 열리는 화면(인앱 브라우저)은 <b>파일 내려받기와 인쇄가 막혀 있는 경우가 많습니다.</b>
-      그래서 앱 안에서 열면 안내 창이 먼저 뜹니다. <b>크롬에서 열기</b>(아이폰은 주소 복사 후 사파리)로 옮긴 다음 써 주세요.</p>
-  </details>
-</section>
-
-<!-- ══ 주의 문구 ══ -->
-<div class="nbx">
-  <div class="nbx-h"><span class="ic">!</span><span>명세서를 보내기 전에 확인하세요</span></div>
-  <ul>
-    <li><b>계산 결과는 참고용입니다.</b> 근로계약·취업규칙·단체협약에 따라 수당 계산이 달라질 수 있고, 실제 지급·공제액은 사업장의 급여대장이 기준입니다.</li>
-    <li>4대보험료는 <b>이번 달 급여로 어림한 값</b>입니다. 실제로는 신고한 보수월액·정산에 따라 공단 고지액과 다를 수 있으니, 고지서 금액이 있으면 칸에 직접 적으세요.
-      소득세는 간이세액표(100%) 기준이며 연말정산에서 다시 정산됩니다.</li>
-    <li>공휴일은 2025~2028년 관공서 공휴일·대체공휴일·선거일을 넣었습니다. <b>임시공휴일</b>은 발표 뒤에 반영되니 확인해 주세요.</li>
-    <li>명세서에는 생년월일 같은 <b>개인정보</b>가 들어갑니다. 받는 사람을 확인하고 보내고, 공용 PC에서는 저장한 직원을 지우세요.</li>
-    <li>최저임금보다 낮은 시급, 주휴수당 누락은 법 위반입니다. 도구의 점검 목록은 입력한 값만 보고 판단하므로 계약 내용과 함께 확인하세요.</li>
-  </ul>
-  <p class="nbx-f">이 도구는 <b>법률·세무 자문이 아니며 있는 그대로 제공됩니다.</b> 계산 결과나 명세서를 사용해 생긴
-    어떠한 손해·분쟁에 대해서도 <b>제작자와 운영자는 법적 책임을 지지 않습니다.</b> 판단이 필요하면 고용노동부 상담센터(국번 없이 1350)나 노무사에게 확인하세요.</p>
+  <footer>
+    링크에 담긴 내용으로 브라우저가 그린 명세서입니다 · 서버 저장 없음<br>
+    계산 결과는 참고용이며, 실제 지급액은 사업장의 급여대장이 기준입니다.<br>
+    <a href="./">시급 임금명세서 작성기로 직접 만들기</a>
+  </footer>
 </div>
-
-<footer>
-  <b>시급 임금명세서 작성기</b> · 업로드 없이 브라우저에서 처리<br>
-  근로기준법 제48조·시행령 제27조의2 기재사항 · 2025~2028년 공휴일 · 외부 라이브러리 없음<br>
-  급여 정보는 어디에도 전송되지 않으며, 페이지를 연 뒤에는 인터넷 없이도 동작합니다.
-</footer>
-</div>
-
-<!-- 앱 안(네이버·카카오톡 등)에서 열렸을 때 사용을 막는 창.
-     WebView 는 파일 내려받기·인쇄를 못 해서, 다 입력해도 명세서를 저장할 수 없다 -->
-<div class="iamodal" id="iaModal" role="dialog" aria-modal="true" aria-labelledby="iaTitle">
-  <div class="iasheet">
-    <div class="iaic">📱</div>
-    <h2 id="iaTitle">앱 안에서는 명세서를 저장할 수 없습니다</h2>
-    <p class="iap" id="iaDesc"></p>
-    <ol class="iasteps" id="iaSteps"></ol>
-    <button class="iabtn" id="iaGo2" type="button">크롬에서 열기</button>
-    <p class="iafine"><button type="button" id="iaStay">저장은 안 해도 돼요 · 계산만 볼게요</button></p>
-  </div>
-</div>
-
-<div id="mbar"><div class="in"><div class="k">실수령액<b id="mbarTxt">0원</b></div><button class="go" id="mbarGo" type="button">명세서 ↓</button></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="printArea"></div>
 <script>
@@ -2224,327 +1578,79 @@ function iaCopied() {
 }
 
 
-/* 휴대폰: 입력 카드를 보는 동안 명세서가 화면 밖이면 아래 바를 띄운다 */
-function updateMbar() {
-  const pr = $('#pvCard').getBoundingClientRect();
-  const inSet = ['#infoCard', '#payCard', '#schCard', '#calCard', '#dedCard'].some(s => onScreen($(s)));
-  const on = inSet && (pr.bottom < 60 || pr.top > window.innerHeight);
-  $('#mbar').classList.toggle('on', on);
-  $('#mbarGo').textContent = pr.bottom < 60 ? '명세서 ↑' : '명세서 ↓';
+/* ══════════════════════════════════════════════════════════════
+   보기 전용 페이지 — 링크(#p=…)에 담긴 명세서를 그리기만 한다.
+   입력칸이 없어서 내용을 고칠 수 없고, 어디에도 저장·전송하지 않는다.
+   할 수 있는 것: PDF·이미지 저장(휴대폰은 카톡 공유 창), 인쇄, 근로자 수령 확인 서명 → 서명한 링크 보내기.
+   계산·그리기·PDF 는 본 도구(index.html)와 같은 코드라 같은 링크면 같은 명세서가 나온다.
+   ══════════════════════════════════════════════════════════════ */
+function updateMbar() { /* 보기 페이지에는 아래 막대가 없다 */ }
+let V = { net: null, signedHere: false };
+
+function vPaint() {
+  CUR = calc(); DOC = docModel(CUR);
+  const rc = sigOf(CUR), bs = bsOf(CUR), who = S.name.trim() || '근로자';
+  document.title = '임금명세서 · ' + who + ' · ' + DOC.monthLabel;
+  $('#vTitle').textContent = (S.biz.trim() || '사업장') + ' · ' + who;
+  $('#vSub').textContent = DOC.monthLabel + ' · 근로기간 ' + DOC.perLabel + (DOC.payLabel ? ' · 지급일 ' + DOC.payLabel : '');
+  $('#vNet').textContent = won(CUR.net);
+  $('#vPay').textContent = won(CUR.pay);
+  $('#vDed').textContent = won(CUR.dedSum);
+  const st = [];
+  if (V.net != null && V.net !== CUR.net) st.push(['warn', '링크를 만든 때(실수령액 ' + won(V.net) + ')와 지금 계산이 다릅니다. 도구 규칙이 바뀌었을 수 있으니 보낸 사람에게 확인하세요.']);
+  if (bs) st.push(['ok', '사업주 서명 있음 · ' + fmtAt(bs.at)]);
+  if (rc) st.push(['ok', '✔ ' + who + ' 님 수령 확인 서명 · ' + fmtAt(rc.at)]);
+  else if (S.rc) st.push(['warn', '서명한 뒤 명세서 내용이 달라져 서명이 무효입니다.']);
+  else if (S.rcpt) st.push(['', '수령 확인 서명 전입니다. 아래 서명판에서 서명할 수 있습니다.']);
+  $('#vStat').innerHTML = st.map(s => '<li class="' + s[0] + '">' + escH(s[1]) + '</li>').join('');
+  $('#rcCard').classList.toggle('hide', !S.rcpt || !!rc);
+  $('#sendCard').classList.toggle('hide', !(rc && V.signedHere));
+  if (rc && V.signedHere) $('#sendMsg').textContent = who + ' 님 서명이 명세서 「수령 확인」 칸에 들어갔습니다(' + fmtAt(rc.at) + '). 아래 단추로 서명한 링크를 명세서를 보낸 사람에게 돌려보내세요.';
+  drawPages();
 }
 
-/* ══ 입력 연결 ══ */
-function bindMoney(el, set) {
-  el.addEventListener('input', () => {
-    const pos = el.selectionStart, before = el.value.length;
-    const v = num(el.value);
-    el.value = v ? comma(v) : '';
-    const p = Math.max(0, pos + (el.value.length - before));
-    try { el.setSelectionRange(p, p); } catch (e) { /* 무시 */ }
-    set(v);
-  });
-}
-function customDefaults() {
-  let py = S.y, pm = S.m - 1; if (pm < 1) { pm = 12; py--; }
-  S.ps = keyOf(dnOf(py, pm, 21)); S.pe = keyOf(dnOf(S.y, S.m, 20));
-}
-function shiftCustom() {
-  const a = dnFromKey(S.ps), b = dnFromKey(S.pe);
-  if (a == null || b == null) { customDefaults(); return; }
-  const da = ymdOf(a).d, db = ymdOf(b).d;
-  let py = S.y, pm = S.m - 1; if (pm < 1) { pm = 12; py--; }
-  const inPrev = ymdOf(a).m !== ymdOf(b).m;
-  const sy = inPrev ? py : S.y, sm = inPrev ? pm : S.m;
-  S.ps = keyOf(dnOf(sy, sm, Math.min(da, lastDay(sy, sm))));
-  S.pe = keyOf(dnOf(S.y, S.m, Math.min(db, lastDay(S.y, S.m))));
-}
-function firstSched() { for (const d of ORDER) if (S.sch[d].on) return S.sch[d]; return { s: '09:00', e: '18:00', b: 60 }; }
-function setOv(day, patch) {
-  const base = { st: day.st === 'none' ? 'off' : day.st, s: day.s, e: day.e, b: day.b, swap: day.swap };
-  const n = Object.assign(base, patch);
-  if (n.st === 'work' && !day.sched && day.st !== 'work' && !patch.s) { const f = firstSched(); n.s = f.s; n.e = f.e; n.b = f.b; }
-  const sc = schedOf(day.dow);
-  const restDef = sc && day.hol && !S.holWork;          /* 공휴일을 쉬는 날로 채우는 설정이면 기본값이 「쉬는 날」 */
-  const same = sc && !restDef ? (n.st === 'work' && n.s === sc.s && n.e === sc.e && (n.b | 0) === (sc.b | 0) && !n.swap)
-                  : (n.st === 'off');
-  if (same) delete S.ov[day.key]; else S.ov[day.key] = n;
-}
-function periodChanged(oldPay) {
-  const d = defPay(S.y, S.m);
-  if (!S.pay || S.pay === oldPay) S.pay = d;
-  S.man = {};
-  editKey = null;
-  paintPeriod();
-  update();
-}
-function loadStaff(p) {
-  const f = freshState();
-  for (const k of STAFF_KEYS) if (p[k] !== undefined) S[k] = JSON.parse(JSON.stringify(p[k]));
-  S.ov = {}; S.wk = {}; S.man = {}; S.rc = null; S.bs = null;
-  if (!S.sch || S.sch.length !== 7) S.sch = f.sch;
-  editKey = null;
-  paintInfo(); paintSched(); paintExtras(); paintStaff();
-  update();
-}
-
-function init() {
-  loadState();
-  /* 지난번에 쓴 달이 지났으면 이번에 만들 달로 옮긴다(시간표·사람 정보는 그대로) */
-  const dp = defPeriod();
-  if ((S.y * 12 + S.m) < (dp.y * 12 + dp.m) && S.savedAt && Date.now() - S.savedAt > 7 * DAY) {
-    S.y = dp.y; S.m = dp.m; S.pay = defPay(dp.y, dp.m); S.man = {}; if (S.cut === 'c') shiftCustom();
+function drawPages() {
+  const box = $('#pages'), n = pageCount(CUR, DOC);
+  const cssW = Math.max(200, Math.min(box.clientWidth - 22, 820));
+  const dpr = Math.min(3, window.devicePixelRatio || 1), ppm = cssW * dpr / PW;
+  const dense = layoutOf(CUR, DOC).dense;
+  box.innerHTML = '';
+  for (let k = 0; k < n; k++) {
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(PW * ppm); cv.height = Math.round(PH * ppm);
+    cv.setAttribute('aria-label', '임금명세서 ' + (k + 1) + '쪽');
+    paint(cv.getContext('2d'), CUR, DOC, k, ppm, dense);
+    box.appendChild(cv);
   }
-  const locked = () => document.body.classList.contains('ia-lock');
+  $('#vPages').textContent = 'A4 ' + n + '쪽';
+}
+async function vLink() { return viewUrl(true) + '#p=' + await packLink(); }
 
-  /* 1. 사람 */
-  const txtIn = (id, k) => $(id).addEventListener('input', e => { S[k] = e.target.value; update(); if (k === 'name') paintStaff(); });
-  txtIn('#inName', 'name'); txtIn('#inBirth', 'birth'); txtIn('#inBiz', 'biz'); txtIn('#inBoss', 'boss');
-  $('#segSize').addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    S.size = +b.dataset.v; paintInfo(); update();
-  });
-  $('#saveStaff').addEventListener('click', () => {
-    if (!S.name.trim()) { toast('근로자 이름을 먼저 적어 주세요'); $('#inName').focus(); return; }
-    const list = staffList().filter(p => p.name !== S.name.trim());
-    const p = {}; for (const k of STAFF_KEYS) p[k] = JSON.parse(JSON.stringify(S[k]));
-    p.name = S.name.trim();
-    list.unshift(p);
-    if (list.length > 20) list.length = 20;
-    if (staffSave(list)) toast('「' + p.name + '」 저장 · 다음 달엔 이름만 누르면 됩니다'); else toast('이 브라우저는 저장을 막고 있습니다');
-    paintStaff();
-  });
-  $('#newStaff').addEventListener('click', () => {
-    S.name = ''; S.birth = ''; S.ov = {}; S.wk = {}; S.man = {}; S.extras = []; S.minus = []; S.rc = null; S.bs = null;
-    editKey = null;
-    paintInfo(); paintExtras(); paintStaff(); update();
-    $('#inName').focus();
-  });
-  /* 예시로 채우기 — 이번 급여 기간 그대로, 평일 저녁 알바 + 한 시간 더 일한 날·결근한 날 하나씩 */
-  $('#fillSample').addEventListener('click', () => {
-    const has = S.name.trim() || Object.keys(S.ov).length || S.extras.length || S.minus.length;
-    if (has && !confirm('지금 입력한 내용을 예시로 바꿀까요?\n(이름·시급·시간표·달력에서 고친 날·수당·공제가 바뀝니다. 저장한 직원 목록은 그대로입니다)')) return;
-    const keep = {};
-    for (const k of ['y', 'm', 'cut', 'ps', 'pe', 'pay', 'log', 'logType', 'cal0', 'holWork', 'rcpt', 'pyck', 'bsig']) keep[k] = S[k];
-    S = Object.assign(freshState(), keep, {
-      name: '홍길동', birth: '2000.01.01', biz: '○○카페', boss: '김대표', size: 5, whd: 0,
-      ded: 'ins', extras: [{ n: '식대', a: 100000, tf: true }]
-    });
-    S.wage = minWage(ymdOf(period().pe).y);
-    S.sch = defSched();
-    const work = calc().P.filter(d => d.st === 'work' && !d.hol);
-    if (work.length > 8) {
-      S.ov[work[3].key] = { st: 'work', s: '17:00', e: '22:30', b: 30 };   /* 한 시간 더 — 연장·야간 */
-      S.ov[work[8].key] = { st: 'abs' };                                     /* 결근 — 그 주 주휴 없음 */
-    }
-    editKey = null; PAD.pts = []; PAD.cur = null;
-    paintInfo(); paintPeriod(); paintSched(); paintBulk(); paintExtras(); paintStaff(); update(); padDraw();
-    toast('예시를 넣었습니다 · 달력에서 점 찍힌 날(한 시간 더 · 결근)을 눌러 보세요', 4600);
-  });
-  $('#staffList').addEventListener('click', e => {
-    const x = e.target.closest('[data-del]');
-    const list = staffList();
-    if (x) {
-      e.stopPropagation();
-      const i = +x.dataset.del, p = list[i]; if (!p) return;
-      if (!confirm('「' + p.name + '」 저장을 지울까요?')) return;
-      list.splice(i, 1); staffSave(list); paintStaff(); toast('지웠습니다');
-      return;
-    }
-    const b = e.target.closest('button[data-i]'); if (!b) return;
-    const p = list[+b.dataset.i]; if (p) { loadStaff(p); toast('「' + p.name + '」 불러옴 · 달력의 이번 달 변경만 다시 넣으세요'); }
-  });
+function viewInit() {
+  const m = location.hash.match(/^#p=([A-Za-z0-9_-]+)/);
+  const fail = () => { $('#vErr').classList.remove('hide'); $('#vMain').classList.add('hide'); };
+  if (IA.on) {
+    $('#iabar').classList.remove('hide');
+    const label = IA.ios && !IA.kakao && !IA.line ? '주소 복사' : IA.android && !IA.kakao && !IA.line ? '크롬에서 열기' : '다른 브라우저로 열기';
+    $('#iaGo').textContent = label;
+    $('#iaGo').addEventListener('click', () => { const u = externalUrl(); if (u) { location.href = u; return; } copyAddr(true); });
+  }
+  if (!m) { fail(); return; }
+  unpackLink(m[1]).then(p => {
+    if (!p || !p.s) throw new Error('빈 링크');
+    S = Object.assign(freshState(), p.s);
+    V.net = p.n;
+    $('#vMain').classList.remove('hide');
+    vPaint();
+    pngLabel();
+    setTimeout(padFit, 60);
+  }).catch(e => { console.error(e); fail(); });
 
-  /* 2. 시급·기간 */
-  bindMoney($('#inWage'), v => { S.wage = Math.min(v, 1000000); update(); });
-  $('#wageChips').addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    S.wage = +b.dataset.w; $('#inWage').value = comma(S.wage); update();
-  });
-  $('#inPay').addEventListener('change', e => { S.pay = e.target.value; update(); });
-  $('#selY').addEventListener('change', e => { const o = defPay(S.y, S.m); S.y = +e.target.value; if (S.cut === 'c') shiftCustom(); periodChanged(o); });
-  $('#selM').addEventListener('change', e => { const o = defPay(S.y, S.m); S.m = +e.target.value; if (S.cut === 'c') shiftCustom(); periodChanged(o); });
-  $('#segCut').addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    S.cut = b.dataset.v;
-    if (S.cut === 'c' && (!S.ps || !S.pe)) customDefaults();
-    periodChanged(S.pay);
-  });
-  const perIn = (id, k) => $(id).addEventListener('change', e => {
-    S[k] = e.target.value;
-    const a = dnFromKey(S.ps), b = dnFromKey(S.pe);
-    if (a != null && b != null && (b < a || b - a > 62)) toast('기간은 63일 안으로, 시작일이 먼저여야 합니다');
-    S.man = {}; paintPeriod(); update();
-  });
-  perIn('#inPs', 'ps'); perIn('#inPe', 'pe');
-
-  /* 3. 시간표 */
-  $('#sched').addEventListener('click', e => {
-    const b = e.target.closest('.dtog'); if (!b) return;
-    const d = +b.closest('.srow').dataset.d;
-    S.sch[d].on = !S.sch[d].on;
-    if (S.sch[d].on) {   /* 켤 때는 다른 근무 요일의 시간을 따라간다 */
-      const f = ORDER.map(k => S.sch[k]).find((c, i) => c.on && ORDER[i] !== d);
-      if (f) { S.sch[d].s = f.s; S.sch[d].e = f.e; S.sch[d].b = f.b; }
-      if (d === S.whd && !S.whdWork) toast(WD[d] + '요일은 주휴일이라 쉼으로 셉니다 · 일했다면 아래 「주휴일에 근무」', 4200);
-    }
-    paintSched(); update();
-  });
-  $('#sched').addEventListener('change', e => {
-    const row = e.target.closest('.srow'); if (!row) return;
-    const d = +row.dataset.d;
-    Object.assign(S.sch[d], readTime(row, ''));
-    paintSched(); update();
-  });
-  $('#selWhd').addEventListener('change', e => { S.whd = +e.target.value; S.wk = {}; paintSched(); update(); });
-  $('#segWhd').addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    S.whdWork = b.dataset.v === 'work';
-    if (S.whdWork && !S.sch[S.whd].on) {      /* 주휴일 시간이 비어 있으면 다른 근무 요일 시간으로 켠다 */
-      const f = firstSched(); S.sch[S.whd] = { on: true, s: f.s, e: f.e, b: f.b };
-      toast(WD[S.whd] + '요일 시간을 ' + f.s + '~' + f.e + '로 넣었습니다 · 위 시간표에서 고치세요', 4200);
-    }
-    paintSched(); paintInfo(); update();
-  });
-
-  /* 4. 달력 */
-  $('#calGrid').addEventListener('click', e => {
-    const b = e.target.closest('.cc'); if (!b) return;
-    editKey = editKey === b.dataset.k ? null : b.dataset.k;
-    update();
-    if (editKey) setTimeout(() => $('#dayEd').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 30);
-  });
-  const edDay = () => VIEW.find(x => x.key === editKey);
-  $('#dayEd').addEventListener('click', e => {
-    const d = edDay(); if (!d) return;
-    const sb = e.target.closest('#edSt button');
-    if (sb) { setOv(d, { st: sb.dataset.v }); update(); return; }
-    if (e.target.closest('#edReset')) { delete S.ov[d.key]; update(); return; }
-    if (e.target.closest('#edClose')) { editKey = null; update(); }
-  });
-  $('#dayEd').addEventListener('change', e => {
-    const d = edDay(); if (!d) return;
-    if (e.target.id === 'edSwap') { setOv(d, { swap: e.target.checked }); update(); return; }
-    const tm = e.target.closest('#edTm'); if (!tm) return;
-    setOv(d, readTime(tm, 'x')); update();
-  });
-  $('#weeks').addEventListener('click', e => {
-    const b = e.target.closest('.wb'); if (!b) return;
-    const k = b.dataset.w, w = CUR.weeks.find(x => keyOf(x.end) === k); if (!w) return;
-    if (w.hol) { if (w.auto) S.wk[k] = 'off'; else delete S.wk[k]; }
-    else { if (w.auto) delete S.wk[k]; else S.wk[k] = 'on'; }
-    update();
-  });
-  $('#resetCal').addEventListener('click', () => {
-    if (!Object.keys(S.ov).length && !Object.keys(S.wk).length) { toast('이미 시간표 그대로입니다'); return; }
-    if (!confirm('달력에서 고친 날짜와 주휴 선택을 모두 지울까요?')) return;
-    S.ov = {}; S.wk = {}; editKey = null; update(); toast('시간표대로 다시 채웠습니다');
-  });
-
-  /* 5. 수당·공제 */
-  const listBind = (boxId, arr, repaint) => {
-    $(boxId).addEventListener('input', e => {
-      const row = e.target.closest('.xrow'); if (!row) return;
-      const it = S[arr][+row.dataset.i]; if (!it) return;
-      const f = e.target.dataset.f;
-      if (f === 'n') it.n = e.target.value;
-      if (f === 'a') { const pos = e.target.selectionStart, bl = e.target.value.length; it.a = Math.min(num(e.target.value), 100000000); e.target.value = it.a ? comma(it.a) : ''; const p = Math.max(0, pos + e.target.value.length - bl); try { e.target.setSelectionRange(p, p); } catch (er) { /* 무시 */ } }
-      update();
-    });
-    $(boxId).addEventListener('change', e => {
-      if (e.target.dataset.f !== 'tf') return;
-      const row = e.target.closest('.xrow'); const it = S[arr][+row.dataset.i]; if (!it) return;
-      it.tf = e.target.checked; update();
-    });
-    $(boxId).addEventListener('click', e => {
-      const b = e.target.closest('.del'); if (!b) return;
-      S[arr].splice(+b.closest('.xrow').dataset.i, 1); repaint(); update();
-    });
-  };
-  listBind('#extras', 'extras', paintExtras);
-  listBind('#minus', 'minus', paintExtras);
-  $('#extraAdd').addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    if (S.extras.length >= 8) { toast('더 주는 돈은 8개까지 넣을 수 있습니다'); return; }
-    S.extras.push({ n: b.dataset.n, a: 0, tf: !!b.dataset.tf });
-    paintExtras(); update();
-    const rows = document.querySelectorAll('#extras .xrow');
-    const last = rows[rows.length - 1]; if (last) last.querySelector(b.dataset.n ? '.amt' : 'input').focus();
-  });
-  $('#addMinus').addEventListener('click', () => {
-    if (S.minus.length >= 6) { toast('공제 항목은 6개까지 넣을 수 있습니다'); return; }
-    S.minus.push({ n: '가불금', a: 0 }); paintExtras(); update();
-    const rows = document.querySelectorAll('#minus .xrow'); const last = rows[rows.length - 1]; if (last) last.querySelector('.amt').focus();
-  });
-  $('#segDed').addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    S.ded = b.dataset.v; S.man = {}; update();
-  });
-  const insChk = (id, k) => $(id).addEventListener('change', e => { S.ins[k] = e.target.checked; update(); });
-  insChk('#cNp', 'np'); insChk('#cHi', 'hi'); insChk('#cEi', 'ei'); insChk('#cTax', 'tax');
-  $('#selFam').addEventListener('change', e => { S.fam = +e.target.value; delete S.man.tax; delete S.man.ltax; update(); });
-  $('#selKids').addEventListener('change', e => { S.kids = +e.target.value; delete S.man.tax; delete S.man.ltax; update(); });
-  $('#cDayEi').addEventListener('change', e => { S.dayEi = e.target.checked; update(); });
-  $('#dedTab').addEventListener('input', e => {
-    const k = e.target.dataset.dk; if (!k) return;
-    const v = e.target.value.replace(/[^0-9]/g, '');
-    if (v === '') delete S.man[k]; else S.man[k] = Math.min(+v, 100000000);
-    e.target.classList.toggle('man', v !== '');
-    update();
-  });
-  $('#dedTab').addEventListener('focusout', () => setTimeout(() => { if (!(document.activeElement && document.activeElement.dataset.dk)) update(); }, 0));
-  $('#dedTab').addEventListener('click', e => {
-    const b = e.target.closest('[data-auto]'); if (!b) return;
-    delete S.man[b.dataset.auto]; update();
-  });
-
-  /* 명세서 */
-  $('#segLog').addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    S.log = b.dataset.v !== 'none'; if (S.log) S.logType = b.dataset.v; curPage = 0; paintInfo(); update();
-  });
-  $('#cRcpt').addEventListener('change', e => { S.rcpt = e.target.checked; if (S.rcpt) SIGT = 'w'; paintInfo(); update(); setTimeout(padFit, 30); });
-  $('#cPyck').addEventListener('change', e => { S.pyck = e.target.checked; paintInfo(); update(); setTimeout(padFit, 30); });
-  $('#cBsig').addEventListener('change', e => {
-    S.bsig = e.target.checked; if (S.bsig) SIGT = 'b';
-    paintInfo(); update(); setTimeout(padFit, 30);
-    if (S.bsig) setTimeout(() => $('#rcCard').scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
-  });
-  $('#segSigT').addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    SIGT = b.dataset.v; PAD.pts = []; PAD.cur = null; padDraw(); update();
-  });
-  $('#segCal0').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.cal0 = +b.dataset.v; update(); });
-  $('#segHol').addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    S.holWork = b.dataset.v === 'work'; paintInfo(); update();
-  });
-  /* 한 번에 넣기 */
-  $('#bulkTm').addEventListener('change', bulkHours);
-  $('#bulk').addEventListener('click', e => {
-    const b = e.target.closest('[data-bulk]'); if (!b) return;
-    const t = readTime($('#bulkTm'), 'b');
-    const days = b.dataset.bulk === 'wd' ? [1, 2, 3, 4, 5] : b.dataset.bulk === 'we' ? [6, 0] : ORDER.filter(d => S.sch[d].on);
-    if (!days.length) { toast('켜 둔 요일이 없습니다'); return; }
-    for (const d of days) S.sch[d] = { on: true, s: t.s, e: t.e, b: t.b };
-    if (days.includes(S.whd) && !S.whdWork) toast(days.map(d => WD[d]).join('·') + ' 적용 · ' + WD[S.whd] + '요일은 주휴일이라 쉼(일했다면 「주휴일에 근무」)', 4600);
-    else toast(days.map(d => WD[d]).join('·') + ' ' + t.s + '~' + t.e + ' 적용');
-    paintSched(); update();
-  });
-  /* 링크 */
-  $('#doLink').addEventListener('click', async () => {
-    try { await runLink(); $('#linkBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
-    catch (e) { toast('링크를 만들지 못했습니다 · ' + ((e && e.message) || e), 4200); }
-  });
-  $('#linkCopy').addEventListener('click', () => {
-    copyText($('#linkUrl').value, '링크를 복사했습니다 · 카톡·문자에 붙여 넣으세요');
-    DONE.show('명세서 링크를 복사했습니다(실수령액 ' + won(CUR.net) + '). 링크를 받은 사람은 같은 명세서를 열어 보고 저장할 수 있습니다.', '링크를 복사했습니다');
-  });
-  $('#linkShare').addEventListener('click', async () => {
-    try { await navigator.share({ title: docBase().replace(/_/g, ' '), text: '임금명세서 · ' + DOC.monthLabel, url: $('#linkUrl').value }); }
-    catch (e) { if (!(e && e.name === 'AbortError')) copyText($('#linkUrl').value, '보내기가 막혀 링크를 복사했습니다'); }
-  });
-  $('#linkHide').addEventListener('click', () => $('#linkBox').classList.add('hide'));
-  $('#linkUrl').addEventListener('focus', e => e.target.select());
+  $('#dlPdf').addEventListener('click', () => runSave('pdf'));
+  $('#dlPng').addEventListener('click', sendPng);
+  $('#doPrint').addEventListener('click', doPrint);
+  $('#doneHide').addEventListener('click', () => DONE.hide());
+  $('#copyHere').addEventListener('click', () => copyText(location.href, '이 명세서 링크를 복사했습니다 · 메모나 카톡 「나와의 채팅」에 붙여 두면 보관됩니다'));
   /* 서명판 */
   const pad = $('#sigPad');
   pad.addEventListener('pointerdown', e => { e.preventDefault(); pad.setPointerCapture(e.pointerId); PAD.cur = padPoint(e); padDraw(); });
@@ -2556,59 +1662,32 @@ function init() {
   const endStroke = () => { if (PAD.cur) { PAD.pts.push(PAD.cur); PAD.cur = null; padDraw(); } };
   pad.addEventListener('pointerup', endStroke); pad.addEventListener('pointercancel', endStroke);
   $('#sigClear').addEventListener('click', () => { PAD.pts = []; PAD.cur = null; padDraw(); });
-  $('#sigOk').addEventListener('click', () => {
+  $('#sigOk').addEventListener('click', async () => {
     if (!PAD.pts.length) { toast('서명판에 먼저 서명해 주세요'); return; }
-    const sig = { pts: PAD.pts.map(st => st.slice()), at: Date.now(), key: docKey(CUR) };
-    if (SIGT === 'b') S.bs = sig;
-    else {
-      if (!S.name.trim()) { toast('근로자 이름이 비어 있습니다'); return; }
-      S.rc = sig;
-    }
+    S.rc = { pts: PAD.pts.map(st => st.slice()), at: Date.now(), key: docKey(CUR) };
     PAD.pts = []; padDraw();
-    update();
-    toast('서명을 넣었습니다 · 명세서 「' + (SIGT === 'b' ? '지급 확인' : '수령 확인') + '」 칸을 확인하세요', 3200);
+    V.signedHere = true;
+    vPaint();
+    try { history.replaceState(null, '', location.pathname + location.search + '#p=' + await packLink()); } catch (e) { /* 주소 바꾸기 실패는 무시 */ }
+    toast('서명을 넣었습니다 · 아래 「서명한 링크 보내기」를 누르세요', 3600);
+    setTimeout(() => $('#sendCard').scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
   });
-  $('#sigDel').addEventListener('click', () => { if (SIGT === 'b') S.bs = null; else S.rc = null; update(); });
-  $('#pvPrev').addEventListener('click', () => { if (curPage > 0) { curPage--; drawPreview(); } });
-  $('#pvNext').addEventListener('click', () => { curPage++; drawPreview(); });
-  $('#dlPdf').addEventListener('click', () => runSave('pdf'));
-  $('#dlPng').addEventListener('click', sendPng);
-  pngLabel();
-  $('#doPrint').addEventListener('click', doPrint);
-
-  $('#doneHide').addEventListener('click', () => DONE.hide());
-  const goOut = () => { const u = externalUrl(); if (u) { location.href = u; return; } copyAddr(true); iaCopied(); };
-  $('#iaGo').addEventListener('click', goOut);
-  $('#iaGo2').addEventListener('click', goOut);
-  $('#doneGo').addEventListener('click', goOut);
-  $('#iaStay').addEventListener('click', () => {
-    lockInApp(false);
-    updateMbar();
-    toast('저장은 안 됩니다. 명세서를 저장하려면 위쪽 「' + $('#iaGo').textContent + '」를 눌러 주세요.', 5200);
+  $('#sigUndo').addEventListener('click', async () => {
+    S.rc = null; V.signedHere = false; vPaint(); setTimeout(padFit, 30);
+    try { history.replaceState(null, '', location.pathname + location.search + '#p=' + await packLink()); } catch (e) { /* 무시 */ }
   });
-  $('#iaX').addEventListener('click', () => {
-    document.body.classList.remove('inapp');
-    try { sessionStorage.setItem('hourly_payslip.iahide', '1'); } catch (e) { /* 무시 */ }
+  $('#sigSend').addEventListener('click', async () => {
+    const url = await vLink();
+    if (IS_MOBILE && navigator.share && !IA.on) {
+      try { await navigator.share({ title: '서명한 임금명세서', url }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+    copyText(url, '서명한 링크를 복사했습니다 · 명세서를 보낸 분께 카톡으로 붙여 보내세요');
   });
-
-  window.addEventListener('scroll', updateMbar, { passive: true });
-  let rzT;
-  window.addEventListener('resize', () => { updateMbar(); clearTimeout(rzT); rzT = setTimeout(() => { schedulePreview(); padFit(); }, 120); }, { passive: true });
-  for (const id of ['#form', '#side']) {
-    $(id).addEventListener('focusin', updateMbar);
-    $(id).addEventListener('focusout', () => setTimeout(updateMbar, 0));
-  }
-  $('#mbarGo').addEventListener('click', () => $('#pvCard').scrollIntoView({ behavior: 'smooth', block: 'start' }));
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedulePreview);
-
-  /* 예전 링크(index.html#p=…)는 보기 전용 페이지로 넘긴다 */
-  if (/^#p=/.test(location.hash)) { location.replace(viewUrl(false) + location.hash); return; }
-  paintInfo(); paintPeriod(); paintSched(); paintBulk(); paintExtras(); paintStaff();
-  initInApp();
-  update();
-  setTimeout(padFit, 60);
+  let rzT = 0;
+  window.addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => { if (CUR) drawPages(); padFit(); }, 150); }, { passive: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (CUR) drawPages(); });
 }
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', viewInit); else viewInit();
 </script>
 </body>
 </html>
